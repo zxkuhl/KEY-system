@@ -2,127 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Key System</title>
-
+<title>ZTECH Key System</title>
 <style>
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #080808;
-  color: white;
-  font-family: system-ui, monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.tabs {
-  margin-top: 30px;
-  display: flex;
-  gap: 10px;
-}
-
-.tabs button {
-  padding: 10px 18px;
-  border-radius: 12px;
-  border: none;
-  background: #111;
-  color: #aaa;
-}
-
-.tabs button.active {
-  background: white;
-  color: black;
-}
-
-.tab {
-  width: 100%;
-  max-width: 420px;
-  margin-top: 25px;
-  display: none;
-}
-
-.delta-box {
-  background: black;
-  border-radius: 20px;
-  padding: 30px;
-  text-align: center;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
-}
-
-.delta-text {
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-.delta-btn {
-  background: white;
-  color: black;
-  border: none;
-  border-radius: 16px;
-  padding: 14px 24px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.delta-btn:disabled {
-  opacity: 0.4;
-}
-
-pre {
-  background: #0d0d0d;
-  border-radius: 12px;
-  padding: 12px;
-  margin-top: 16px;
-  color: #00ff9c;
-}
-
-input, textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  background: #111;
-  border: 1px solid #333;
-  color: white;
-  margin-bottom: 10px;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  background: #111;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-}
-
-li button {
-  background: red;
-  border: none;
-  color: white;
-  border-radius: 8px;
-  padding: 4px 8px;
-}
-
-.status-circle {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  margin-left: 8px;
-  vertical-align: middle;
-  background-color: gray;
-}
+body { margin: 0; min-height: 100vh; background: #080808; color: white; font-family: system-ui, monospace; display: flex; flex-direction: column; align-items: center; }
+.tabs { margin-top: 30px; display: flex; gap: 10px; }
+.tabs button { padding: 10px 18px; border-radius: 12px; border: none; background: #111; color: #aaa; }
+.tabs button.active { background: white; color: black; }
+.tab { width: 100%; max-width: 420px; margin-top: 25px; display: none; }
+.delta-box { background: black; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 0 0 1px rgba(255,255,255,0.05); }
+.delta-text { font-weight: 600; margin-bottom: 20px; }
+.delta-btn { background: white; color: black; border: none; border-radius: 16px; padding: 14px 24px; font-weight: 700; cursor: pointer; }
+.delta-btn:disabled { opacity: 0.4; }
+pre { background: #0d0d0d; border-radius: 12px; padding: 12px; margin-top: 16px; color: #00ff9c; }
+input, textarea { width: 100%; padding: 12px; border-radius: 10px; background: #111; border: 1px solid #333; color: white; margin-bottom: 10px; }
+ul { list-style: none; padding: 0; }
+li { background: #111; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+li button { background: red; border: none; color: white; border-radius: 8px; padding: 4px 8px; }
+.status-circle { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-left: 8px; vertical-align: middle; background-color: gray; }
+h1.title { color: white; text-align: center; margin-bottom: 20px; }
 </style>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-
 <body>
 
 <div class="tabs">
@@ -131,8 +33,9 @@ li button {
   <button id="adminTab">Admin</button>
 </div>
 
-<!-- GENERATOR -->
+<!-- KEY GENERATOR -->
 <div id="gen" class="tab" style="display:block;">
+  <h1 class="title">ZTECH KEYS</h1>
   <div class="delta-box">
     <p class="delta-text">make a key to get white listed</p>
     <button id="genKey" class="delta-btn">Generate Key</button>
@@ -149,7 +52,7 @@ li button {
   <p id="bugMsg"></p>
 </div>
 
-<!-- ADMIN GATE -->
+<!-- ADMIN LOGIN -->
 <div id="gate" class="tab">
   <h2>Admin Access</h2>
   <input type="password" id="password" placeholder="Admin password">
@@ -164,206 +67,165 @@ li button {
   <button id="toggleSystem"></button>
 
   <h2>Active Keys</h2>
+  <button id="selectAllKeys">Select All</button>
   <button id="forceExpireSelected">Force Expire Selected</button>
   <ul id="keyList"></ul>
-  <button id="loadMore">Load More</button>
 
   <h2>Bug Reports</h2>
-  <button id="loadBugs">Refresh Bug List</button>
+  <button id="selectAllBugs">Select All</button>
   <ul id="bugList"></ul>
 </div>
 
 <script>
-const ADMIN_PASSWORD = "ZXKUHL_KEYS-E2013!";
-let systemEnabled = true;
-let page = 0;
-
-/* ---------- TAB LOGIC ---------- */
-function show(id) {
-  document.querySelectorAll(".tab").forEach(t => t.style.display = "none");
-  document.getElementById(id).style.display = "block";
-
-  genTab.classList.remove("active");
-  adminTab.classList.remove("active");
-  bugTab.classList.remove("active");
-
-  if (id === "gen") genTab.classList.add("active");
-  if (id === "bug") bugTab.classList.add("active");
-  if (id === "gate" || id === "admin") adminTab.classList.add("active");
-}
-genTab.onclick = () => show("gen");
-adminTab.onclick = () => show("gate");
-bugTab.onclick = () => show("bug");
-
-/* ---------- KEY GENERATOR ---------- */
-function generateKey() {
-  let n = "";
-  for (let i = 0; i < 10; i++) n += Math.floor(Math.random() * 10);
-  return "FREE-" + n;
-}
-
-genKey.onclick = () => {
-  if (!systemEnabled) {
-    disabledMsg.innerText = "Key system is shut down.";
-    return;
-  }
-
-  const key = generateKey();
-  const expires = Date.now() + 86400000; // 24h
-  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
-  keys.push({ key, expires, active: true });
-  localStorage.setItem("keys", JSON.stringify(keys));
-
-  output.innerText = key;
-
-  // refresh admin tab dynamically
-  if (sessionStorage.getItem("admin") === "true") {
-    page = 0;
-    keyList.innerHTML = "";
-    loadKeys();
-  }
+/* ====== FIREBASE CONFIG ====== */
+// TODO: Replace with your Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET.appspot.com",
+  messagingSenderId: "YOUR_MSG_ID",
+  appId: "YOUR_APP_ID"
 };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-/* ---------- ADMIN LOGIN ---------- */
-enter.onclick = () => {
-  if (password.value === ADMIN_PASSWORD) {
-    sessionStorage.setItem("admin", "true");
-    show("admin");
-    loadAdmin();
-  } else {
-    error.innerText = "Access denied";
-  }
-};
+/* ====== TABS ====== */
+const genTab = document.getElementById("genTab");
+const bugTab = document.getElementById("bugTab");
+const adminTab = document.getElementById("adminTab");
 
-/* ---------- ADMIN PANEL ---------- */
-function loadAdmin() {
-  loadStatus();
-  keyList.innerHTML = "";
-  page = 0;
-  loadKeys();
-  loadBugs();
+function show(id){
+  document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
+  document.getElementById(id).style.display="block";
+  genTab.classList.remove("active"); bugTab.classList.remove("active"); adminTab.classList.remove("active");
+  if(id==="gen") genTab.classList.add("active");
+  if(id==="bug") bugTab.classList.add("active");
+  if(id==="gate"||id==="admin") adminTab.classList.add("active");
 }
+genTab.onclick=()=>show("gen");
+adminTab.onclick=()=>show("gate");
+bugTab.onclick=()=>show("bug");
 
-function loadStatus() {
-  const status = document.getElementById("status");
-  const toggle = document.getElementById("toggleSystem");
-  const circle = document.getElementById("statusCircle");
+/* ====== GLOBAL ====== */
+const ADMIN_PASSWORD="ZXKUHL_KEYS-E2013!";
+const output=document.getElementById("output");
+const disabledMsg=document.getElementById("disabledMsg");
+let keysPage=0;
 
-  status.innerText = systemEnabled ? "ON" : "SHUT DOWN";
-  toggle.innerText = systemEnabled ? "Shut Down" : "Enable System";
+/* ====== SYSTEM STATE ====== */
+function getSystemEnabled(callback){ db.ref("systemEnabled").once("value",snap=>callback(snap.exists()?snap.val():true)); }
+function setSystemEnabled(val){ db.ref("systemEnabled").set(val); }
 
-  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
-  const keyCount = keys.length;
-
-  if (!systemEnabled) {
-    circle.style.backgroundColor = "red";
-  } else if (keyCount <= 10) {
-    circle.style.backgroundColor = "green";
-  } else if (keyCount <= 30) {
-    circle.style.backgroundColor = "yellow";
-  } else {
-    circle.style.backgroundColor = "red";
-  }
-
-  toggle.onclick = () => {
-    systemEnabled = !systemEnabled;
-    loadStatus();
-  };
-}
-
-/* ---------- LOAD KEYS ---------- */
-function loadKeys() {
-  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
-  const slice = keys.slice(page * 10, page * 10 + 10);
-
-  slice.forEach((k, i) => {
-    const expired = !k.active || Date.now() > k.expires;
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-      <input type="checkbox" class="expireCheckbox">
-      ${k.key} ${expired ? "❌" : "✅"}
-      <button ${expired ? "disabled" : ""}>Expire</button>
-    `;
-
-    li.querySelector("button").onclick = () => {
-      k.active = false;
-      k.expires = Date.now();
-      localStorage.setItem("keys", JSON.stringify(keys));
-      li.remove();
-    };
-
-    keyList.appendChild(li);
+/* ====== GENERATE KEY ====== */
+document.getElementById("genKey").onclick=()=>{
+  getSystemEnabled(enabled=>{
+    if(!enabled){ disabledMsg.innerText="Key system is shut down."; return; }
+    let n=""; for(let i=0;i<10;i++) n+=Math.floor(Math.random()*10);
+    const key="FREE-"+n;
+    const now=Date.now();
+    db.ref("keys").push({key:key,expires:now+86400000,active:true});
+    output.innerText=key;
   });
+};
 
-  page++;
-}
+/* ====== BUG REPORT ====== */
+document.getElementById("submitBug").onclick=()=>{
+  const val=document.getElementById("bugInput").value.trim(); if(!val) return;
+  db.ref("bugs").push({text:val,seen:false,timestamp:Date.now()});
+  document.getElementById("bugInput").value=""; document.getElementById("bugMsg").innerText="Bug submitted!";
+  setTimeout(()=>document.getElementById("bugMsg").innerText="",1500);
+};
 
-loadMore.onclick = loadKeys;
+/* ====== ADMIN LOGIN ====== */
+document.getElementById("enter").onclick=()=>{
+  if(document.getElementById("password").value===ADMIN_PASSWORD){ show("admin"); loadAdmin(); }
+  else { document.getElementById("error").innerText="Access denied"; }
+};
 
-/* ---------- FORCE EXPIRE SELECTED ---------- */
-forceExpireSelected.onclick = () => {
-  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
-  const checkboxes = document.querySelectorAll("#keyList li input.expireCheckbox");
+/* ====== ADMIN PANEL ====== */
+const statusSpan=document.getElementById("status");
+const statusCircle=document.getElementById("statusCircle");
+const toggleBtn=document.getElementById("toggleSystem");
+const keyList=document.getElementById("keyList");
+const forceBtn=document.getElementById("forceExpireSelected");
+const bugList=document.getElementById("bugList");
 
-  checkboxes.forEach((cb, index) => {
-    if (cb.checked) {
-      keys[index + (page-1)*10].active = false;
-    }
+function loadAdmin(){ loadKeys(); loadBugs(); loadStatus(); }
+
+/* --- STATUS --- */
+function loadStatus(){
+  db.ref("systemEnabled").on("value",snap=>{
+    const val=snap.val();
+    statusSpan.innerText=val?"ON":"SHUT DOWN";
+    toggleBtn.innerText=val?"Shut Down":"Enable System";
+    db.ref("keys").once("value",kSnap=>{
+      const keyCount=kSnap.exists()?Object.keys(kSnap.val()).length:0;
+      if(!val) statusCircle.style.backgroundColor="red";
+      else if(keyCount<=10) statusCircle.style.backgroundColor="green";
+      else if(keyCount<=30) statusCircle.style.backgroundColor="yellow";
+      else statusCircle.style.backgroundColor="red";
+    });
   });
+}
+toggleBtn.onclick=()=>{ getSystemEnabled(enabled=>setSystemEnabled(!enabled)); };
 
-  localStorage.setItem("keys", JSON.stringify(keys));
-  loadAdmin();
-};
-
-/* ---------- BUG REPORTS ---------- */
-// Submit bug (user view)
-submitBug.onclick = () => {
-  const bugText = bugInput.value.trim();
-  if (!bugText) return;
-  const bugs = JSON.parse(localStorage.getItem("bugs") || "[]");
-  bugs.push({ text: bugText, seen: false, timestamp: Date.now() });
-  localStorage.setItem("bugs", JSON.stringify(bugs));
-  bugInput.value = "";
-  bugMsg.innerText = "Bug submitted!";
-  setTimeout(()=>bugMsg.innerText="",1500);
-};
-
-// Load bug reports (admin view)
-function loadBugs() {
-  bugList.innerHTML = "";
-  const bugs = JSON.parse(localStorage.getItem("bugs") || "[]");
-
-  bugs.forEach((b,i) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <input type="checkbox" class="bugCheckbox">
-      ${b.seen ? "(Seen) " : ""}${b.text}
-      <button>Mark Seen</button>
-      <button>Delete</button>
-    `;
-
-    // Mark seen
-    li.querySelector("button:nth-of-type(1)").onclick = () => {
-      b.seen = true;
-      localStorage.setItem("bugs", JSON.stringify(bugs));
-      loadBugs();
-    };
-
-    // Delete
-    li.querySelector("button:nth-of-type(2)").onclick = () => {
-      bugs.splice(i,1);
-      localStorage.setItem("bugs", JSON.stringify(bugs));
-      loadBugs();
-    };
-
-    bugList.appendChild(li);
+/* --- LOAD KEYS --- */
+function loadKeys(){
+  keyList.innerHTML="";
+  db.ref("keys").on("value",snap=>{
+    keyList.innerHTML="";
+    if(!snap.exists()) return;
+    const val=snap.val();
+    Object.keys(val).forEach(id=>{
+      const k=val[id];
+      if(!k.active||k.expires<Date.now()) return;
+      const li=document.createElement("li");
+      li.innerHTML=`<input type="checkbox" class="expireCheckbox"> ${k.key} ✅ <button>Expire</button>`;
+      li.querySelector("button").onclick=()=>{ db.ref("keys/"+id).update({active:false}); };
+      keyList.appendChild(li);
+    });
   });
 }
 
-loadBugsBtn = document.getElementById("loadBugs");
-loadBugsBtn.onclick = loadBugs;
+/* --- FORCE EXPIRE SELECTED --- */
+forceBtn.onclick=()=>{
+  const checkboxes=document.querySelectorAll("#keyList li input.expireCheckbox");
+  db.ref("keys").once("value",snap=>{
+    const keys=snap.val(); if(!keys) return;
+    const ids=Object.keys(keys);
+    checkboxes.forEach((cb,i)=>{ if(cb.checked) db.ref("keys/"+ids[i]).update({active:false}); });
+  });
+};
 
+/* --- SELECT ALL KEYS --- */
+document.getElementById("selectAllKeys").onclick = ()=>{
+  document.querySelectorAll("#keyList li input.expireCheckbox").forEach(cb=>cb.checked=true);
+};
+
+/* --- BUGS --- */
+function loadBugs(){
+  db.ref("bugs").on("value",snap=>{
+    bugList.innerHTML="";
+    if(!snap.exists()) return;
+    const val=snap.val();
+    Object.keys(val).forEach(id=>{
+      const b=val[id];
+      const li=document.createElement("li");
+      li.innerHTML=`<input type="checkbox" class="bugCheckbox"> ${b.seen?"(Seen) ":""}${b.text} <button>Mark Seen</button> <button>Delete</button>`;
+      li.querySelector("button:nth-of-type(1)").onclick=()=>{ db.ref("bugs/"+id).update({seen:true}); };
+      li.querySelector("button:nth-of-type(2)").onclick=()=>{ db.ref("bugs/"+id).remove(); };
+      bugList.appendChild(li);
+    });
+  });
+}
+
+/* --- SELECT ALL BUGS --- */
+document.getElementById("selectAllBugs").onclick = ()=>{
+  document.querySelectorAll("#bugList li input.bugCheckbox").forEach(cb=>cb.checked=true);
+};
 </script>
+
 </body>
 </html>
