@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Key System</title>
+
+<style>
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #080808;
+  color: white;
+  font-family: system-ui, monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tabs {
+  margin-top: 30px;
+  display: flex;
+  gap: 10px;
+}
+
+.tabs button {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: none;
+  background: #111;
+  color: #aaa;
+}
+
+.tabs button.active {
+  background: white;
+  color: black;
+}
+
+.tab {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 25px;
+  display: none;
+}
+
+.delta-box {
+  background: black;
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.delta-text {
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.delta-btn {
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 24px;
+  font-weight: 700;
+}
+
+.delta-btn:disabled {
+  opacity: 0.4;
+}
+
+pre {
+  background: #0d0d0d;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 16px;
+  color: #00ff9c;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: #111;
+  border: 1px solid #333;
+  color: white;
+  margin-bottom: 10px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: #111;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+li button {
+  background: red;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+#error {
+  color: red;
+}
+</style>
+</head>
+
+<body>
+
+<div class="tabs">
+  <button id="genTab" class="active">Generate Key</button>
+  <button id="adminTab">Admin</button>
+</div>
+
+<!-- GENERATOR -->
+<div id="gen" class="tab" style="display:block;">
+  <div class="delta-box">
+    <p class="delta-text">make a key to get white listed</p>
+    <button id="genKey" class="delta-btn">Generate Key</button>
+    <pre id="output"></pre>
+    <p id="disabledMsg"></p>
+  </div>
+</div>
+
+<!-- ADMIN GATE -->
+<div id="gate" class="tab">
+  <h2>Admin Access</h2>
+  <input type="password" id="password" placeholder="Admin password">
+  <button id="enter">Enter</button>
+  <p id="error"></p>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin" class="tab">
+  <h2>Controls</h2>
+  <p>Status: <span id="status"></span></p>
+  <button id="toggleSystem"></button>
+
+  <h2>Active Keys</h2>
+  <ul id="keyList"></ul>
+  <button id="loadMore">Load More</button>
+</div>
+
+<script>
+const ADMIN_PASSWORD = "ZXKUHL_KEYS-E2013!";
+let systemEnabled = true;
+let page = 0;
+
+/* ---------- TAB LOGIC ---------- */
+function show(id) {
+  document.querySelectorAll(".tab").forEach(t => t.style.display = "none");
+  document.getElementById(id).style.display = "block";
+
+  genTab.classList.remove("active");
+  adminTab.classList.remove("active");
+
+  if (id === "gen") genTab.classList.add("active");
+  if (id === "gate" || id === "admin") adminTab.classList.add("active");
+}
+
+genTab.onclick = () => show("gen");
+adminTab.onclick = () => show("gate");
+
+/* ---------- KEY GENERATOR ---------- */
+function generateKey() {
+  let n = "";
+  for (let i = 0; i < 10; i++) n += Math.floor(Math.random() * 10);
+  return "FREE-" + n;
+}
+
+genKey.onclick = () => {
+  if (!systemEnabled) {
+    disabledMsg.innerText = "Key system is shut down.";
+    return;
+  }
+
+  const key = generateKey();
+  const expires = Date.now() + 86400000;
+
+  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
+  keys.push({ key, expires, active: true });
+  localStorage.setItem("keys", JSON.stringify(keys));
+
+  output.innerText = key;
+};
+
+/* ---------- ADMIN LOGIN ---------- */
+enter.onclick = () => {
+  if (password.value === ADMIN_PASSWORD) {
+    show("admin");
+    loadAdmin();
+  } else {
+    error.innerText = "Access denied";
+  }
+};
+
+/* ---------- ADMIN PANEL ---------- */
+function loadAdmin() {
+  loadStatus();
+  loadKeys();
+}
+
+function loadStatus() {
+  status.innerText = systemEnabled ? "ON" : "SHUT DOWN";
+  toggleSystem.innerText = systemEnabled ? "Shut Down" : "Enable System";
+  toggleSystem.onclick = () => {
+    systemEnabled = !systemEnabled;
+    loadStatus();
+  };
+}
+
+function loadKeys() {
+  const list = document.getElementById("keyList");
+  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
+
+  const slice = keys.slice(page * 10, page * 10 + 10);
+  slice.forEach(k => {
+    const expired = !k.active || Date.now() > k.expires;
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      ${k.key} ${expired ? "❌" : "✅"}
+      <button ${expired ? "disabled" : ""}>Expire</button>
+    `;
+
+    li.querySelector("button").onclick = () => {
+      k.active = false;
+      k.expires = Date.now();
+      localStorage.setItem("keys", JSON.stringify(keys));
+      li.remove();
+    };
+
+    list.appendChild(li);
+  });
+
+  page++;
+}
+
+loadMore.onclick = loadKeys;
+</script>
+
+</body>
+</html>
