@@ -62,6 +62,7 @@ body {
   border-radius: 16px;
   padding: 14px 24px;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .delta-btn:disabled {
@@ -76,7 +77,7 @@ pre {
   color: #00ff9c;
 }
 
-input {
+input, textarea {
   width: 100%;
   padding: 12px;
   border-radius: 10px;
@@ -99,6 +100,7 @@ li {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  align-items: center;
 }
 
 li button {
@@ -109,8 +111,14 @@ li button {
   padding: 4px 8px;
 }
 
-#error {
-  color: red;
+.status-circle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+  background-color: gray;
 }
 </style>
 </head>
@@ -119,6 +127,7 @@ li button {
 
 <div class="tabs">
   <button id="genTab" class="active">Generate Key</button>
+  <button id="bugTab">Bug Report</button>
   <button id="adminTab">Admin</button>
 </div>
 
@@ -132,6 +141,14 @@ li button {
   </div>
 </div>
 
+<!-- BUG REPORT -->
+<div id="bug" class="tab">
+  <h2>Submit a Bug</h2>
+  <textarea id="bugInput" placeholder="Describe the bug..." rows="4"></textarea>
+  <button id="submitBug">Submit</button>
+  <p id="bugMsg"></p>
+</div>
+
 <!-- ADMIN GATE -->
 <div id="gate" class="tab">
   <h2>Admin Access</h2>
@@ -143,12 +160,17 @@ li button {
 <!-- ADMIN PANEL -->
 <div id="admin" class="tab">
   <h2>Controls</h2>
-  <p>Status: <span id="status"></span></p>
+  <p>Status: <span id="status"></span> <span id="statusCircle" class="status-circle"></span></p>
   <button id="toggleSystem"></button>
 
   <h2>Active Keys</h2>
+  <button id="forceExpireSelected">Force Expire Selected</button>
   <ul id="keyList"></ul>
   <button id="loadMore">Load More</button>
+
+  <h2>Bug Reports</h2>
+  <button id="loadBugs">Refresh Bug List</button>
+  <ul id="bugList"></ul>
 </div>
 
 <script>
@@ -163,13 +185,15 @@ function show(id) {
 
   genTab.classList.remove("active");
   adminTab.classList.remove("active");
+  bugTab.classList.remove("active");
 
   if (id === "gen") genTab.classList.add("active");
+  if (id === "bug") bugTab.classList.add("active");
   if (id === "gate" || id === "admin") adminTab.classList.add("active");
 }
-
 genTab.onclick = () => show("gen");
 adminTab.onclick = () => show("gate");
+bugTab.onclick = () => show("bug");
 
 /* ---------- KEY GENERATOR ---------- */
 function generateKey() {
@@ -185,18 +209,25 @@ genKey.onclick = () => {
   }
 
   const key = generateKey();
-  const expires = Date.now() + 86400000;
-
+  const expires = Date.now() + 86400000; // 24h
   const keys = JSON.parse(localStorage.getItem("keys") || "[]");
   keys.push({ key, expires, active: true });
   localStorage.setItem("keys", JSON.stringify(keys));
 
   output.innerText = key;
+
+  // refresh admin tab dynamically
+  if (sessionStorage.getItem("admin") === "true") {
+    page = 0;
+    keyList.innerHTML = "";
+    loadKeys();
+  }
 };
 
 /* ---------- ADMIN LOGIN ---------- */
 enter.onclick = () => {
   if (password.value === ADMIN_PASSWORD) {
+    sessionStorage.setItem("admin", "true");
     show("admin");
     loadAdmin();
   } else {
@@ -207,28 +238,50 @@ enter.onclick = () => {
 /* ---------- ADMIN PANEL ---------- */
 function loadAdmin() {
   loadStatus();
+  keyList.innerHTML = "";
+  page = 0;
   loadKeys();
+  loadBugs();
 }
 
 function loadStatus() {
+  const status = document.getElementById("status");
+  const toggle = document.getElementById("toggleSystem");
+  const circle = document.getElementById("statusCircle");
+
   status.innerText = systemEnabled ? "ON" : "SHUT DOWN";
-  toggleSystem.innerText = systemEnabled ? "Shut Down" : "Enable System";
-  toggleSystem.onclick = () => {
+  toggle.innerText = systemEnabled ? "Shut Down" : "Enable System";
+
+  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
+  const keyCount = keys.length;
+
+  if (!systemEnabled) {
+    circle.style.backgroundColor = "red";
+  } else if (keyCount <= 10) {
+    circle.style.backgroundColor = "green";
+  } else if (keyCount <= 30) {
+    circle.style.backgroundColor = "yellow";
+  } else {
+    circle.style.backgroundColor = "red";
+  }
+
+  toggle.onclick = () => {
     systemEnabled = !systemEnabled;
     loadStatus();
   };
 }
 
+/* ---------- LOAD KEYS ---------- */
 function loadKeys() {
-  const list = document.getElementById("keyList");
   const keys = JSON.parse(localStorage.getItem("keys") || "[]");
-
   const slice = keys.slice(page * 10, page * 10 + 10);
-  slice.forEach(k => {
+
+  slice.forEach((k, i) => {
     const expired = !k.active || Date.now() > k.expires;
     const li = document.createElement("li");
 
     li.innerHTML = `
+      <input type="checkbox" class="expireCheckbox">
       ${k.key} ${expired ? "❌" : "✅"}
       <button ${expired ? "disabled" : ""}>Expire</button>
     `;
@@ -240,14 +293,77 @@ function loadKeys() {
       li.remove();
     };
 
-    list.appendChild(li);
+    keyList.appendChild(li);
   });
 
   page++;
 }
 
 loadMore.onclick = loadKeys;
-</script>
 
+/* ---------- FORCE EXPIRE SELECTED ---------- */
+forceExpireSelected.onclick = () => {
+  const keys = JSON.parse(localStorage.getItem("keys") || "[]");
+  const checkboxes = document.querySelectorAll("#keyList li input.expireCheckbox");
+
+  checkboxes.forEach((cb, index) => {
+    if (cb.checked) {
+      keys[index + (page-1)*10].active = false;
+    }
+  });
+
+  localStorage.setItem("keys", JSON.stringify(keys));
+  loadAdmin();
+};
+
+/* ---------- BUG REPORTS ---------- */
+// Submit bug (user view)
+submitBug.onclick = () => {
+  const bugText = bugInput.value.trim();
+  if (!bugText) return;
+  const bugs = JSON.parse(localStorage.getItem("bugs") || "[]");
+  bugs.push({ text: bugText, seen: false, timestamp: Date.now() });
+  localStorage.setItem("bugs", JSON.stringify(bugs));
+  bugInput.value = "";
+  bugMsg.innerText = "Bug submitted!";
+  setTimeout(()=>bugMsg.innerText="",1500);
+};
+
+// Load bug reports (admin view)
+function loadBugs() {
+  bugList.innerHTML = "";
+  const bugs = JSON.parse(localStorage.getItem("bugs") || "[]");
+
+  bugs.forEach((b,i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <input type="checkbox" class="bugCheckbox">
+      ${b.seen ? "(Seen) " : ""}${b.text}
+      <button>Mark Seen</button>
+      <button>Delete</button>
+    `;
+
+    // Mark seen
+    li.querySelector("button:nth-of-type(1)").onclick = () => {
+      b.seen = true;
+      localStorage.setItem("bugs", JSON.stringify(bugs));
+      loadBugs();
+    };
+
+    // Delete
+    li.querySelector("button:nth-of-type(2)").onclick = () => {
+      bugs.splice(i,1);
+      localStorage.setItem("bugs", JSON.stringify(bugs));
+      loadBugs();
+    };
+
+    bugList.appendChild(li);
+  });
+}
+
+loadBugsBtn = document.getElementById("loadBugs");
+loadBugsBtn.onclick = loadBugs;
+
+</script>
 </body>
 </html>
