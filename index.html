@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <title>ZTECH Key System</title>
 <style>
-body { margin:0; min-height:100vh; background:#080808; color:white; font-family:system-ui, monospace; display:flex; flex-direction:column; align-items:center;}
+body { margin:0; min-height:100vh; background:#080808; color:white; font-family:system-ui, monospace; display:flex; flex-direction:column; align-items:center; }
 .tabs { margin-top:30px; display:flex; gap:10px; }
 .tabs button { padding:10px 18px; border-radius:12px; border:none; background:#111; color:#aaa; cursor:pointer; }
 .tabs button.active { background:white; color:black; }
 .tab { width:100%; max-width:480px; margin-top:25px; display:none; }
-.delta-box { background:black; border-radius:20px; padding:30px; text-align:center; box-shadow:0 0 0 1px rgba(255,255,255,0.05);}
+.delta-box { background:black; border-radius:20px; padding:30px; text-align:center; box-shadow:0 0 0 1px rgba(255,255,255,0.05); }
 .delta-text { font-weight:600; margin-bottom:20px; }
 .delta-btn { background:white; color:black; border:none; border-radius:16px; padding:14px 24px; font-weight:700; cursor:pointer; }
 .delta-btn:disabled { opacity:0.4; }
@@ -17,13 +17,12 @@ pre { background:#0d0d0d; border-radius:12px; padding:12px; margin-top:16px; col
 input, textarea { width:100%; padding:12px; border-radius:10px; background:#111; border:1px solid #333; color:white; margin-bottom:10px; }
 ul { list-style:none; padding:0; }
 li { background:#111; padding:10px; border-radius:10px; margin-bottom:8px; display:flex; gap:10px; align-items:center; }
-li button { background:red; border:none; color:white; border-radius:8px; padding:4px 8px; }
+li button { background:red; border:none; color:white; border-radius:8px; padding:4px 8px; cursor:pointer; }
 .status-circle { width:14px; height:14px; border-radius:50%; display:inline-block; margin-left:6px; }
-h1 { margin-bottom:20px; }
+h1 { margin-bottom:20px; text-align:center; }
 button.selectAll { margin-right:10px; }
 </style>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
@@ -36,7 +35,7 @@ button.selectAll { margin-right:10px; }
   <button id="adminTab">Admin</button>
 </div>
 
-<!-- GENERATE -->
+<!-- KEY GENERATOR -->
 <div id="gen" class="tab" style="display:block;">
   <h1>ZTECH KEYS</h1>
   <div class="delta-box">
@@ -83,7 +82,6 @@ loadstring(game:HttpGet("https://example.com/script.lua"))()
   <h2>Active Keys</h2>
   <button id="selectAllKeys" class="selectAll">Select All</button>
   <button id="forceExpireSelected" class="selectAll">Force Expire Selected</button>
-  <button id="deleteSelectedKeys" class="selectAll">Delete Selected</button>
   <ul id="keyList"></ul>
 
   <h2>Bug Reports</h2>
@@ -102,7 +100,7 @@ const firebaseConfig = {
   projectId: "key-system-5efa4",
   storageBucket: "key-system-5efa4.appspot.com",
   messagingSenderId: "862359412770",
-  appId: "1:862359412770:web:f55b9553644b329dfbaa7b"
+  appId: "1:862359412770:web:f55b955364b329dfbaa7b"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -112,6 +110,11 @@ const ADMIN_PASSWORD = "ZXKUHL_KEYS-E2013!";
 let adminAuthed = false;
 
 /* ================= TABS ================= */
+const genTab = document.getElementById("genTab");
+const scriptsTab = document.getElementById("scriptsTab");
+const bugTab = document.getElementById("bugTab");
+const adminTab = document.getElementById("adminTab");
+
 function show(id){
   document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
   document.getElementById(id).style.display="block";
@@ -124,6 +127,7 @@ function show(id){
   if(id==="bug") bugTab.classList.add("active");
   if(id==="gate"||id==="admin") adminTab.classList.add("active");
 }
+
 genTab.onclick=()=>show("gen");
 scriptsTab.onclick=()=>show("scripts");
 bugTab.onclick=()=>show("bug");
@@ -131,64 +135,75 @@ adminTab.onclick=()=>show(adminAuthed?"admin":"gate");
 
 /* ================= SYSTEM STATE ================= */
 const systemRef = db.ref("system/enabled");
-const genKeyBtn = document.getElementById("genKey");
-const output = document.getElementById("output");
-const disabledMsg = document.getElementById("disabledMsg");
-
 systemRef.on("value", snap=>{
   const enabled = snap.val() !== false;
-  genKeyBtn.disabled = !enabled;
-  disabledMsg.innerText = enabled ? "" : "Key system is shut down.";
-  document.getElementById("status").innerText = enabled?"ON":"SHUT DOWN";
-  document.getElementById("statusCircle").style.background = enabled?"green":"red";
+  document.getElementById("genKey").disabled = !enabled;
+  document.getElementById("disabledMsg").innerText = enabled ? "" : "Key system is shut down.";
+  const statusCircle = document.getElementById("statusCircle");
+  statusCircle.style.background = enabled ? "green" : "red";
+  document.getElementById("status").innerText = enabled ? "ON" : "SHUT DOWN";
 });
 
 /* ================= KEY GENERATION ================= */
 function makeKey(){ return "FREE-" + Math.floor(Math.random()*1e10); }
 
+const genKeyBtn = document.getElementById("genKey");
+const output = document.getElementById("output");
+
 genKeyBtn.onclick = ()=>{
   const lastGen = localStorage.getItem("lastGen");
   if(lastGen && Date.now() - lastGen < 3600000){
     output.innerText = "You can only generate 1 key per hour.";
-    const prevKey = localStorage.getItem("lastKey");
-    if(prevKey) output.innerText = prevKey;
-    setTimeout(()=>output.innerText="",5000);
     return;
   }
   systemRef.once("value", s=>{
     if(s.val() === false) return;
     const key = makeKey();
-    db.ref("keys").push({key, active:true, expires:Date.now()+86400000, device:navigator.userAgent});
+    const newKey = { key, active:true, expires:Date.now()+86400000, device: navigator.userAgent };
+    db.ref("keys").push(newKey);
     output.innerText = key;
     localStorage.setItem("lastGen", Date.now());
-    localStorage.setItem("lastKey", key);
-    setTimeout(()=>output.innerText="",5000);
   });
 };
 
 /* ================= BUG REPORT ================= */
+const submitBug = document.getElementById("submitBug");
+const bugInput = document.getElementById("bugInput");
+const bugMsg = document.getElementById("bugMsg");
+
 submitBug.onclick=()=>{
   if(!bugInput.value.trim()) return;
-  db.ref("bugs").push({text:bugInput.value, seen:false});
+  db.ref("bugs").push({text:bugInput.value, seen:false, timestamp:Date.now()});
   bugInput.value="";
   bugMsg.innerText="Bug submitted!";
   setTimeout(()=>bugMsg.innerText="",1200);
 };
 
 /* ================= ADMIN LOGIN ================= */
-enter.onclick=()=>{
-  if(password.value===ADMIN_PASSWORD){
+const enterBtn = document.getElementById("enter");
+const passwordInput = document.getElementById("password");
+enterBtn.onclick=()=>{
+  if(passwordInput.value===ADMIN_PASSWORD){
     adminAuthed=true;
     show("admin");
     loadAdmin();
-  } else error.innerText="Access denied";
+  } else document.getElementById("error").innerText="Access denied";
 };
 
 /* ================= ADMIN ================= */
+const toggleSystem = document.getElementById("toggleSystem");
+const keyList = document.getElementById("keyList");
+const forceExpireSelected = document.getElementById("forceExpireSelected");
+const selectAllKeys = document.getElementById("selectAllKeys");
+
 function loadAdmin(){
+  // Toggle button
+  toggleSystem.onclick=()=>{
+    systemRef.once("value", s=>systemRef.set(!(s.val()!==false)));
+  };
   loadKeys();
   loadBugs();
-  toggleSystem.onclick=()=>{ systemRef.set(!(genKeyBtn.disabled)); };
+  setInterval(cleanExpiredKeys, 60000); // Auto delete expired keys every minute
 }
 
 /* ================= KEYS ================= */
@@ -198,8 +213,10 @@ function loadKeys(){
     snap.forEach(c=>{
       const k = c.val();
       const id = c.key;
-      // auto delete expired keys
-      if(Date.now() > k.expires || !k.active){ db.ref("keys/"+id).remove(); return; }
+      if(!k.active || Date.now()>k.expires){
+        db.ref("keys/"+id).remove(); // auto delete expired
+        return;
+      }
       const li = document.createElement("li");
       li.innerHTML=`<input type="checkbox" data-id="${id}"> ${k.key}`;
       keyList.appendChild(li);
@@ -207,11 +224,29 @@ function loadKeys(){
   });
 }
 
-selectAllKeys.onclick=()=>document.querySelectorAll("#keyList input").forEach(cb=>cb.checked=true);
-forceExpireSelected.onclick()=>document.querySelectorAll("#keyList input:checked").forEach(cb=>db.ref("keys/"+cb.dataset.id).update({active:false}));
-deleteSelectedKeys.onclick=()=>document.querySelectorAll("#keyList input:checked").forEach(cb=>db.ref("keys/"+cb.dataset.id).remove());
+selectAllKeys.onclick=()=>{ document.querySelectorAll("#keyList input").forEach(cb=>cb.checked=true); };
+
+forceExpireSelected.onclick=()=>{
+  document.querySelectorAll("#keyList input:checked").forEach(cb=>{
+    db.ref("keys/"+cb.dataset.id).update({active:false});
+  });
+};
+
+function cleanExpiredKeys(){
+  db.ref("keys").once("value", snap=>{
+    snap.forEach(c=>{
+      const k = c.val();
+      if(k.expires < Date.now()) db.ref("keys/"+c.key).remove();
+    });
+  });
+}
 
 /* ================= BUGS ================= */
+const bugList = document.getElementById("bugList");
+const selectAllBugs = document.getElementById("selectAllBugs");
+const markSeenSelected = document.getElementById("markSeenSelected");
+const deleteSelectedBugs = document.getElementById("deleteSelectedBugs");
+
 function loadBugs(){
   db.ref("bugs").on("value", snap=>{
     bugList.innerHTML="";
@@ -219,14 +254,19 @@ function loadBugs(){
       const b = c.val();
       const id = c.key;
       const li = document.createElement("li");
-      li.innerHTML=`<input type="checkbox" data-id="${id}">${b.seen?"(Seen) ":""}${b.text}`;
+      li.innerHTML=`<input type="checkbox" data-id="${id}"> ${b.seen?"(Seen) ":""}${b.text} <button onclick="db.ref('bugs/${id}').update({seen:true})">Mark Seen</button> <button onclick="db.ref('bugs/${id}').remove()">Delete</button>`;
       bugList.appendChild(li);
     });
   });
 }
-selectAllBugs.onclick=()=>document.querySelectorAll("#bugList input").forEach(cb=>cb.checked=true);
-markSeenSelected.onclick=()=>document.querySelectorAll("#bugList input:checked").forEach(cb=>db.ref("bugs/"+cb.dataset.id).update({seen:true}));
-deleteSelectedBugs.onclick=()=>document.querySelectorAll("#bugList input:checked").forEach(cb=>db.ref("bugs/"+cb.dataset.id).remove());
+
+selectAllBugs.onclick=()=>{ document.querySelectorAll("#bugList input").forEach(cb=>cb.checked=true); };
+markSeenSelected.onclick=()=>{
+  document.querySelectorAll("#bugList input:checked").forEach(cb=>{ db.ref("bugs/"+cb.dataset.id).update({seen:true}); });
+};
+deleteSelectedBugs.onclick=()=>{
+  document.querySelectorAll("#bugList input:checked").forEach(cb=>{ db.ref("bugs/"+cb.dataset.id).remove(); });
+};
 </script>
 </body>
 </html>
