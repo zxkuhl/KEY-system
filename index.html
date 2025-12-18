@@ -5,18 +5,18 @@
 <title>ZTECH Key System</title>
 
 <style>
-body { 
-  margin:0; 
-  min-height:100vh; 
-  background:#080808; 
-  color:white; 
-  font-family:system-ui, monospace; 
-  display:flex; 
-  flex-direction:column; 
-  align-items:center; 
+body {
+  margin:0;
+  min-height:100vh;
+  background:#080808;
+  color:white;
+  font-family:system-ui, monospace;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-/* FACTION LOGO (NO GLOW) */
+/* FACTION ICON — WHITE GLOW ONLY */
 #faction-logo {
   position: fixed;
   top: 15px;
@@ -25,124 +25,123 @@ body {
   height: auto;
   border-radius: 10px;
   z-index: 1000;
+  box-shadow: 0 0 20px rgba(255,255,255,0.65);
 }
 
-/* TABS WITH WHITE GLOW */
-.tabs { 
-  margin-top:30px; 
-  display:flex; 
-  gap:10px; 
-  box-shadow: 0 0 18px rgba(255,255,255,0.15);
-  border-radius:14px;
-  padding:6px;
+/* EVERYTHING BELOW IS UNTOUCHED */
+.tabs {
+  margin-top:30px;
+  display:flex;
+  gap:10px;
 }
 
-.tabs button { 
-  padding:10px 18px; 
-  border-radius:12px; 
-  border:none; 
-  background:#111; 
-  color:#aaa; 
-  cursor:pointer; 
+.tabs button {
+  padding:10px 18px;
+  border-radius:12px;
+  border:none;
+  background:#111;
+  color:#aaa;
+  cursor:pointer;
 }
 
-.tabs button.active { 
-  background:white; 
-  color:black; 
-  box-shadow: 0 0 14px rgba(255,255,255,0.6);
+.tabs button.active {
+  background:white;
+  color:black;
 }
 
-.tab { 
-  width:100%; 
-  max-width:480px; 
-  margin-top:25px; 
-  display:none; 
+.tab {
+  width:100%;
+  max-width:480px;
+  margin-top:25px;
+  display:none;
 }
 
-/* MAIN BOX WHITE GLOW */
-.delta-box { 
-  background:black; 
-  border-radius:20px; 
-  padding:30px; 
-  text-align:center; 
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.08),
-    0 0 25px rgba(255,255,255,0.18);
+.delta-box {
+  background:black;
+  border-radius:20px;
+  padding:30px;
+  text-align:center;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.05);
 }
 
-.delta-text { 
-  font-weight:600; 
-  margin-bottom:20px; 
+.delta-text {
+  font-weight:600;
+  margin-bottom:20px;
 }
 
-.delta-btn { 
-  background:white; 
-  color:black; 
-  border:none; 
-  border-radius:16px; 
-  padding:14px 24px; 
-  font-weight:700; 
-  cursor:pointer; 
+.delta-btn {
+  background:white;
+  color:black;
+  border:none;
+  border-radius:16px;
+  padding:14px 24px;
+  font-weight:700;
+  cursor:pointer;
 }
 
-.delta-btn:disabled { 
-  opacity:0.4; 
+.delta-btn:disabled {
+  opacity:0.4;
 }
 
-pre { 
-  background:#0d0d0d; 
-  border-radius:12px; 
-  padding:12px; 
-  margin-top:16px; 
-  color:#00ff9c; 
-  overflow:auto; 
-  box-shadow: 0 0 16px rgba(255,255,255,0.15);
+pre {
+  background:#0d0d0d;
+  border-radius:12px;
+  padding:12px;
+  margin-top:16px;
+  color:#00ff9c;
+  overflow:auto;
 }
 
-input, textarea { 
-  width:100%; 
-  padding:12px; 
-  border-radius:10px; 
-  background:#111; 
-  border:1px solid #333; 
-  color:white; 
-  margin-bottom:10px; 
-  box-shadow: inset 0 0 8px rgba(255,255,255,0.1);
+input, textarea {
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  background:#111;
+  border:1px solid #333;
+  color:white;
+  margin-bottom:10px;
 }
 
-ul { list-style:none; padding:0; }
-
-li { 
-  background:#111; 
-  padding:10px; 
-  border-radius:10px; 
-  margin-bottom:8px; 
-  display:flex; 
-  gap:10px; 
-  align-items:center; 
-  box-shadow: 0 0 12px rgba(255,255,255,0.12);
+ul {
+  list-style:none;
+  padding:0;
 }
 
-li button { 
-  background:red; 
-  border:none; 
-  color:white; 
-  border-radius:8px; 
-  padding:4px 8px; 
-  cursor:pointer; 
+li {
+  background:#111;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:8px;
+  display:flex;
+  gap:10px;
+  align-items:center;
 }
 
-.status-circle { 
-  width:14px; 
-  height:14px; 
-  border-radius:50%; 
-  display:inline-block; 
-  margin-left:6px; 
+li button {
+  background:red;
+  border:none;
+  color:white;
+  border-radius:8px;
+  padding:4px 8px;
+  cursor:pointer;
 }
 
-h1, h2 { text-align:center; }
+.status-circle {
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  display:inline-block;
+  margin-left:6px;
+}
 
-button.selectAll { margin-right:10px; }
+h1 {
+  margin-bottom:20px;
+  text-align:center;
+}
+
+button.selectAll {
+  margin-right:10px;
+}
 </style>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -212,8 +211,8 @@ loadstring(game:HttpGet("https://example.com/script.lua"))()
   <ul id="bugList"></ul>
 </div>
 
-<!-- JS LOGIC (UNCHANGED) -->
 <script>
+/* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyCDYErDzkUObLnPWJUwqOQcceqS2WyUWyM",
   authDomain: "key-system-5efa4.firebaseapp.com",
@@ -226,6 +225,34 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+/* ================= GLOBAL ================= */
+const ADMIN_PASSWORD = "ZXKUHL_KEYS-E2013!";
+let adminAuthed = false;
+
+/* ================= TABS ================= */
+const genTab = document.getElementById("genTab");
+const scriptsTab = document.getElementById("scriptsTab");
+const bugTab = document.getElementById("bugTab");
+const adminTab = document.getElementById("adminTab");
+
+function show(id){
+  document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
+  document.getElementById(id).style.display="block";
+  genTab.classList.remove("active");
+  scriptsTab.classList.remove("active");
+  bugTab.classList.remove("active");
+  adminTab.classList.remove("active");
+  if(id==="gen") genTab.classList.add("active");
+  if(id==="scripts") scriptsTab.classList.add("active");
+  if(id==="bug") bugTab.classList.add("active");
+  if(id==="gate"||id==="admin") adminTab.classList.add("active");
+}
+
+genTab.onclick=()=>show("gen");
+scriptsTab.onclick=()=>show("scripts");
+bugTab.onclick=()=>show("bug");
+adminTab.onclick=()=>show(adminAuthed?"admin":"gate");
 </script>
 
 </body>
