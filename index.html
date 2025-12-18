@@ -3,155 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <title>ZTECH Key System</title>
-
 <style>
-body {
-  margin:0;
-  min-height:100vh;
-  background:#080808;
-  color:white;
-  font-family:system-ui, monospace;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
+body { margin:0; min-height:100vh; background:#080808; color:white; font-family:system-ui, monospace; display:flex; flex-direction:column; align-items:center; }
+.tabs { margin-top:30px; display:flex; gap:10px; }
+.tabs button { padding:10px 18px; border-radius:12px; border:none; background:#111; color:#aaa; cursor:pointer; }
+.tabs button.active { background:white; color:black; }
+.tab { width:100%; max-width:480px; margin-top:25px; display:none; }
+.delta-box { background:black; border-radius:20px; padding:30px; text-align:center; box-shadow:0 0 0 1px rgba(255,255,255,0.05); }
+.delta-text { font-weight:600; margin-bottom:20px; }
+.delta-btn { background:white; color:black; border:none; border-radius:16px; padding:14px 24px; font-weight:700; cursor:pointer; }
+.delta-btn:disabled { opacity:0.4; }
+pre { background:#0d0d0d; border-radius:12px; padding:12px; margin-top:16px; color:#00ff9c; overflow:auto; }
+input, textarea { width:100%; padding:12px; border-radius:10px; background:#111; border:1px solid #333; color:white; margin-bottom:10px; }
+ul { list-style:none; padding:0; }
+li { background:#111; padding:10px; border-radius:10px; margin-bottom:8px; display:flex; gap:10px; align-items:center; }
+li button { background:red; border:none; color:white; border-radius:8px; padding:4px 8px; cursor:pointer; }
+.status-circle { width:14px; height:14px; border-radius:50%; display:inline-block; margin-left:6px; }
+h1 { margin-bottom:20px; text-align:center; }
+button.selectAll { margin-right:10px; }
 
-/* FACTION ICON — WHITE GLOW ONLY */
-#faction-logo {
+/* FACTION LOGO */
+#faction-logo{
   position: fixed;
   top: 15px;
   left: 15px;
-  width: 100px;
+  width: 90px;
   height: auto;
-  border-radius: 10px;
   z-index: 1000;
-  box-shadow: 0 0 20px rgba(255,255,255,0.65);
-}
-
-/* EVERYTHING BELOW IS UNTOUCHED */
-.tabs {
-  margin-top:30px;
-  display:flex;
-  gap:10px;
-}
-
-.tabs button {
-  padding:10px 18px;
-  border-radius:12px;
-  border:none;
-  background:#111;
-  color:#aaa;
-  cursor:pointer;
-}
-
-.tabs button.active {
-  background:white;
-  color:black;
-}
-
-.tab {
-  width:100%;
-  max-width:480px;
-  margin-top:25px;
-  display:none;
-}
-
-.delta-box {
-  background:black;
-  border-radius:20px;
-  padding:30px;
-  text-align:center;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.05);
-}
-
-.delta-text {
-  font-weight:600;
-  margin-bottom:20px;
-}
-
-.delta-btn {
-  background:white;
-  color:black;
-  border:none;
-  border-radius:16px;
-  padding:14px 24px;
-  font-weight:700;
-  cursor:pointer;
-}
-
-.delta-btn:disabled {
-  opacity:0.4;
-}
-
-pre {
-  background:#0d0d0d;
-  border-radius:12px;
-  padding:12px;
-  margin-top:16px;
-  color:#00ff9c;
-  overflow:auto;
-}
-
-input, textarea {
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  background:#111;
-  border:1px solid #333;
-  color:white;
-  margin-bottom:10px;
-}
-
-ul {
-  list-style:none;
-  padding:0;
-}
-
-li {
-  background:#111;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:8px;
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-li button {
-  background:red;
-  border:none;
-  color:white;
-  border-radius:8px;
-  padding:4px 8px;
-  cursor:pointer;
-}
-
-.status-circle {
-  width:14px;
-  height:14px;
-  border-radius:50%;
-  display:inline-block;
-  margin-left:6px;
-}
-
-h1 {
-  margin-bottom:20px;
-  text-align:center;
-}
-
-button.selectAll {
-  margin-right:10px;
 }
 </style>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-
 <body>
 
 <!-- FACTION LOGO -->
-<img src="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png" alt="" id="faction-logo">
+<img
+  id="faction-logo"
+  src="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png"
+  alt=""
+>
 
 <div class="tabs">
   <button id="genTab" class="active">Generate Key</button>
@@ -160,6 +52,7 @@ button.selectAll {
   <button id="adminTab">Admin</button>
 </div>
 
+<!-- KEY GENERATOR -->
 <div id="gen" class="tab" style="display:block;">
   <h1>ZTECH KEYS</h1>
   <div class="delta-box">
@@ -170,16 +63,18 @@ button.selectAll {
   </div>
 </div>
 
+<!-- SCRIPTS -->
 <div id="scripts" class="tab">
   <h2>Scripts</h2>
   <div class="delta-box">
-<pre>
+    <pre>
 -- ZTECH Script
 loadstring(game:HttpGet("https://example.com/script.lua"))()
-</pre>
+    </pre>
   </div>
 </div>
 
+<!-- BUG REPORT -->
 <div id="bug" class="tab">
   <h2>Submit a Bug</h2>
   <textarea id="bugInput" rows="4"></textarea>
@@ -187,6 +82,7 @@ loadstring(game:HttpGet("https://example.com/script.lua"))()
   <p id="bugMsg"></p>
 </div>
 
+<!-- ADMIN GATE -->
 <div id="gate" class="tab">
   <h2>Admin Access</h2>
   <input type="password" id="password" placeholder="Admin password">
@@ -194,6 +90,7 @@ loadstring(game:HttpGet("https://example.com/script.lua"))()
   <p id="error"></p>
 </div>
 
+<!-- ADMIN PANEL -->
 <div id="admin" class="tab">
   <h2>Controls</h2>
   <p>Status: <span id="status"></span> <span id="statusCircle" class="status-circle"></span></p>
@@ -222,7 +119,6 @@ const firebaseConfig = {
   messagingSenderId: "862359412770",
   appId: "1:862359412770:web:f55b955364b329dfbaa7b"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
@@ -253,7 +149,140 @@ genTab.onclick=()=>show("gen");
 scriptsTab.onclick=()=>show("scripts");
 bugTab.onclick=()=>show("bug");
 adminTab.onclick=()=>show(adminAuthed?"admin":"gate");
-</script>
 
+/* ================= SYSTEM STATE ================= */
+const systemRef = db.ref("system/enabled");
+systemRef.on("value", snap=>{
+  const enabled = snap.val() !== false;
+  document.getElementById("genKey").disabled = !enabled;
+  document.getElementById("disabledMsg").innerText = enabled ? "" : "Key system is shut down.";
+  const statusCircle = document.getElementById("statusCircle");
+  statusCircle.style.background = enabled ? "green" : "red";
+  document.getElementById("status").innerText = enabled ? "ON" : "SHUT DOWN";
+});
+
+/* ================= KEY GENERATION ================= */
+function makeKey(){ return "FREE-" + Math.floor(Math.random()*1e10); }
+
+const genKeyBtn = document.getElementById("genKey");
+const output = document.getElementById("output");
+
+genKeyBtn.onclick = ()=>{
+  const lastGen = localStorage.getItem("lastGen");
+  if(lastGen && Date.now() - lastGen < 3600000){
+    output.innerText = "You can only generate 1 key per hour.";
+    return;
+  }
+  systemRef.once("value", s=>{
+    if(s.val() === false) return;
+    const key = makeKey();
+    const newKey = { key, active:true, expires:Date.now()+86400000, device: navigator.userAgent };
+    db.ref("keys").push(newKey);
+    output.innerText = key;
+    localStorage.setItem("lastGen", Date.now());
+  });
+};
+
+/* ================= BUG REPORT ================= */
+const submitBug = document.getElementById("submitBug");
+const bugInput = document.getElementById("bugInput");
+const bugMsg = document.getElementById("bugMsg");
+
+submitBug.onclick=()=>{
+  if(!bugInput.value.trim()) return;
+  db.ref("bugs").push({text:bugInput.value, seen:false, timestamp:Date.now()});
+  bugInput.value="";
+  bugMsg.innerText="Bug submitted!";
+  setTimeout(()=>bugMsg.innerText="",1200);
+};
+
+/* ================= ADMIN LOGIN ================= */
+const enterBtn = document.getElementById("enter");
+const passwordInput = document.getElementById("password");
+enterBtn.onclick=()=>{
+  if(passwordInput.value===ADMIN_PASSWORD){
+    adminAuthed=true;
+    show("admin");
+    loadAdmin();
+  } else document.getElementById("error").innerText="Access denied";
+};
+
+/* ================= ADMIN ================= */
+const toggleSystem = document.getElementById("toggleSystem");
+const keyList = document.getElementById("keyList");
+const forceExpireSelected = document.getElementById("forceExpireSelected");
+const selectAllKeys = document.getElementById("selectAllKeys");
+
+function loadAdmin(){
+  toggleSystem.onclick=()=>{
+    systemRef.once("value", s=>systemRef.set(!(s.val()!==false)));
+  };
+  loadKeys();
+  loadBugs();
+  setInterval(cleanExpiredKeys, 60000);
+}
+
+/* ================= KEYS ================= */
+function loadKeys(){
+  db.ref("keys").on("value", snap=>{
+    keyList.innerHTML="";
+    snap.forEach(c=>{
+      const k = c.val();
+      const id = c.key;
+      if(!k.active || Date.now()>k.expires){
+        db.ref("keys/"+id).remove();
+        return;
+      }
+      const li = document.createElement("li");
+      li.innerHTML=`<input type="checkbox" data-id="${id}"> ${k.key}`;
+      keyList.appendChild(li);
+    });
+  });
+}
+
+selectAllKeys.onclick=()=>{ document.querySelectorAll("#keyList input").forEach(cb=>cb.checked=true); };
+
+forceExpireSelected.onclick=()=>{
+  document.querySelectorAll("#keyList input:checked").forEach(cb=>{
+    db.ref("keys/"+cb.dataset.id).update({active:false});
+  });
+};
+
+function cleanExpiredKeys(){
+  db.ref("keys").once("value", snap=>{
+    snap.forEach(c=>{
+      const k = c.val();
+      if(k.expires < Date.now()) db.ref("keys/"+c.key).remove();
+    });
+  });
+}
+
+/* ================= BUGS ================= */
+const bugList = document.getElementById("bugList");
+const selectAllBugs = document.getElementById("selectAllBugs");
+const markSeenSelected = document.getElementById("markSeenSelected");
+const deleteSelectedBugs = document.getElementById("deleteSelectedBugs");
+
+function loadBugs(){
+  db.ref("bugs").on("value", snap=>{
+    bugList.innerHTML="";
+    snap.forEach(c=>{
+      const b = c.val();
+      const id = c.key;
+      const li = document.createElement("li");
+      li.innerHTML=`<input type="checkbox" data-id="${id}"> ${b.seen?"(Seen) ":""}${b.text} <button onclick="db.ref('bugs/${id}').update({seen:true})">Mark Seen</button> <button onclick="db.ref('bugs/${id}').remove()">Delete</button>`;
+      bugList.appendChild(li);
+    });
+  });
+}
+
+selectAllBugs.onclick=()=>{ document.querySelectorAll("#bugList input").forEach(cb=>cb.checked=true); };
+markSeenSelected.onclick=()=>{
+  document.querySelectorAll("#bugList input:checked").forEach(cb=>{ db.ref("bugs/"+cb.dataset.id).update({seen:true}); });
+};
+deleteSelectedBugs.onclick=()=>{
+  document.querySelectorAll("#bugList input:checked").forEach(cb=>{ db.ref("bugs/"+cb.dataset.id).remove(); });
+};
+</script>
 </body>
 </html>
