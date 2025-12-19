@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZTECH MAIN</title>
+
+<!-- Faction Logo -->
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png">
+
+<style>
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #080808;
+    color: white;
+    font-family: system-ui, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#faction-logo {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    width: 90px;
+    height: auto;
+    z-index: 1000;
+}
+
+.tabs {
+    margin-top: 120px; /* push below logo */
+    display: flex;
+    gap: 10px;
+}
+
+.tabs button {
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: none;
+    background: #111;
+    color: #aaa;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.tabs button.active {
+    background: white;
+    color: black;
+}
+
+.tab {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 25px;
+    display: none;
+}
+
+.delta-box {
+    background: black;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.delta-text {
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.delta-btn {
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 16px;
+    padding: 14px 24px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+pre {
+    background: #0d0d0d;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 16px;
+    color: #00ff9c;
+    overflow: auto;
+}
+</style>
+</head>
+<body>
+
+<!-- Faction Logo -->
+<img
+  id="faction-logo"
+  src="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png"
+  alt="Faction Logo"
+/>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button id="mainTab" class="active">Main</button>
+    <button id="creditsTab">Credits</button>
+</div>
+
+<!-- MAIN TAB -->
+<div id="main" class="tab" style="display:block;">
+    <div class="delta-box">
+        <h1>ZTECH UI</h1>
+        <p class="delta-text">Access the key system below</p>
+        <button id="keySystemBtn" class="delta-btn">KEY SYSTEM</button>
+    </div>
+</div>
+
+<!-- CREDITS TAB -->
+<div id="credits" class="tab">
+    <div class="delta-box">
+        <p>Website made by ZTECH team</p>
+        <button id="discordBtn" class="delta-btn">Discord</button>
+    </div>
+</div>
+
+<script>
+// TAB FUNCTIONALITY
+const mainTab = document.getElementById("mainTab");
+const creditsTab = document.getElementById("creditsTab");
+
+function showTab(id) {
+    document.querySelectorAll(".tab").forEach(t => t.style.display = "none");
+    document.getElementById(id).style.display = "block";
+    mainTab.classList.remove("active");
+    creditsTab.classList.remove("active");
+    if (id === "main") mainTab.classList.add("active");
+    if (id === "credits") creditsTab.classList.add("active");
+}
+
+mainTab.onclick = () => showTab("main");
+creditsTab.onclick = () => showTab("credits");
+
+// BUTTON REDIRECTS
+const keySystemBtn = document.getElementById("keySystemBtn");
+keySystemBtn.onclick = () => {
+    window.location.href = "https://zxkuhl.github.io/KEY-system/";
+};
+
+const discordBtn = document.getElementById("discordBtn");
+discordBtn.onclick = () => {
+    window.location.href = "https://discord.gg/KPUPp4m9pJ";
+};
+</script>
+
+</body>
+</html>
