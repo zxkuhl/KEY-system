@@ -2,14 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ZTECH Key System</title>
+<title> Key generation System</title>
 
-<!-- Regular favicon -->
+<!-- Favicon -->
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png?v=1">
 
-<!-- Apple touch icon for iOS -->
-<link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png">
-  
 <style>
 body { 
   margin:0; 
@@ -20,29 +17,7 @@ body {
   display:flex; 
   flex-direction:column; 
   align-items:center; 
-}
-.tabs { 
-  margin-top:30px; 
-  display:flex; 
-  gap:10px; 
-}
-.tabs button { 
-  padding:10px 18px; 
-  border-radius:12px; 
-  border:none; 
-  background:#111; 
-  color:#aaa; 
-  cursor:pointer; 
-}
-.tabs button.active { 
-  background:white; 
-  color:black; 
-}
-.tab { 
-  width:100%; 
-  max-width:480px; 
-  margin-top:25px; 
-  display:none; 
+  justify-content:center;
 }
 .delta-box { 
   background:black; 
@@ -75,60 +50,6 @@ pre {
   color:#00ff9c; 
   overflow:auto; 
 }
-input, textarea { 
-  width:100%; 
-  padding:12px; 
-  border-radius:10px; 
-  background:#111; 
-  border:1px solid #333; 
-  color:white; 
-  margin-bottom:10px; 
-}
-ul { 
-  list-style:none; 
-  padding:0; 
-}
-li { 
-  background:#111; 
-  padding:10px; 
-  border-radius:10px; 
-  margin-bottom:8px; 
-  display:flex; 
-  gap:10px; 
-  align-items:center; 
-}
-li button { 
-  background:red; 
-  border:none; 
-  color:white; 
-  border-radius:8px; 
-  padding:4px 8px; 
-  cursor:pointer; 
-}
-.status-circle { 
-  width:14px; 
-  height:14px; 
-  border-radius:50%; 
-  display:inline-block; 
-  margin-left:6px; 
-}
-h1 { 
-  margin-bottom:20px; 
-  text-align:center; 
-}
-button.selectAll { 
-  margin-right:10px; 
-}
-
-/* FACTION LOGO */
-#faction-logo{
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  width: 90px;
-  height: auto;
-  z-index: 1000;
-}
 </style>
 
 <!-- Firebase -->
@@ -137,41 +58,12 @@ button.selectAll {
 </head>
 <body>
 
-<!-- FACTION LOGO -->
-<img
-  id="faction-logo"
-  src="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png"
-  alt=""
->
-
-<!-- Tabs -->
-<div class="tabs">
-  <button id="genTab" class="active">Generate Key</button>
-  <button id="scriptsTab">Scripts</button>
-  <button id="bugTab">Bug Report</button>
-  <button id="adminTab">Admin</button>
-</div>
-
-<!-- KEY GENERATOR -->
-<div id="gen" class="tab" style="display:block;">
+<div class="delta-box">
   <h1>ZTECH KEYS</h1>
-  <div class="delta-box">
-    <p class="delta-text">Make a key to get whitelisted</p>
-    <button id="genKey" class="delta-btn">Generate Key</button>
-    <pre id="output"></pre>
-    <p id="disabledMsg"></p>
-  </div>
-
-  <!-- Key management list -->
-  <ul id="keyList"></ul>
-  <button id="selectAllKeys">Select All</button>
-  <button id="forceExpireSelected">Expire Selected</button>
+  <p class="delta-text">Make a key to get whitelisted</p>
+  <button id="genKey" class="delta-btn">Generate Key</button>
+  <pre id="output"></pre>
 </div>
-
-<!-- Placeholder tabs -->
-<div id="scripts" class="tab"><h1>Scripts Tab</h1></div>
-<div id="bug" class="tab"><h1>Bug Report Tab</h1></div>
-<div id="admin" class="tab"><h1>Admin Tab</h1></div>
 
 <script>
 // ================= FIREBASE =================
@@ -187,14 +79,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// Reference to system (replace with your actual DB path)
+const systemRef = db.ref("system"); 
+
 // ================= KEY GENERATION =================
-function makeKey(){ return "FREE-" + Math.floor(Math.random()*1e10); }
+function makeKey(){ 
+  return "FREE-" + Math.floor(Math.random()*1e10); 
+}
 
 const genKeyBtn = document.getElementById("genKey");
 const output = document.getElementById("output");
-
-// Reference to system (replace with your actual DB path)
-const systemRef = db.ref("system"); 
 
 genKeyBtn.onclick = ()=>{
   const lastGen = localStorage.getItem("lastGen");
@@ -203,72 +97,22 @@ genKeyBtn.onclick = ()=>{
     return;
   }
   systemRef.once("value", s=>{
-    if(s.val() === false) return;
+    if(s.val() === false) {
+      output.innerText = "Key generation is disabled.";
+      return;
+    }
     const key = makeKey();
-    const newKey = { key, active:true, expires:Date.now()+86400000, device: navigator.userAgent };
+    const newKey = { 
+      key, 
+      active:true, 
+      expires:Date.now()+86400000, 
+      device: navigator.userAgent 
+    };
     db.ref("keys").push(newKey);
     output.innerText = key;
     localStorage.setItem("lastGen", Date.now());
   });
 };
-
-// ================= KEYS =================
-const keyList = document.getElementById("keyList");
-const selectAllKeys = document.getElementById("selectAllKeys");
-const forceExpireSelected = document.getElementById("forceExpireSelected");
-
-function loadKeys(){
-  db.ref("keys").on("value", snap=>{
-    keyList.innerHTML="";
-    snap.forEach(c=>{
-      const k = c.val();
-      const id = c.key;
-      if(!k.active || Date.now()>k.expires){
-        db.ref("keys/"+id).remove();
-        return;
-      }
-      const li = document.createElement("li");
-      li.innerHTML=`<input type="checkbox" data-id="${id}"> ${k.key}`;
-      keyList.appendChild(li);
-    });
-  });
-}
-
-selectAllKeys.onclick=()=>{ 
-  document.querySelectorAll("#keyList input").forEach(cb=>cb.checked=true); 
-};
-
-forceExpireSelected.onclick=()=>{
-  document.querySelectorAll("#keyList input:checked").forEach(cb=>{
-    db.ref("keys/"+cb.dataset.id).update({active:false});
-  });
-};
-
-function cleanExpiredKeys(){
-  db.ref("keys").once("value", snap=>{
-    snap.forEach(c=>{
-      const k = c.val();
-      if(k.expires < Date.now()) db.ref("keys/"+c.key).remove();
-    });
-  });
-}
-
-// Initial load
-loadKeys();
-
-// ================= TABS =================
-const tabs = document.querySelectorAll(".tabs button");
-const tabContents = document.querySelectorAll(".tab");
-
-tabs.forEach(btn => {
-  btn.addEventListener("click", () => {
-    tabs.forEach(b => b.classList.remove("active"));
-    tabContents.forEach(t => t.style.display = "none");
-
-    btn.classList.add("active");
-    document.getElementById(btn.id.replace("Tab","")).style.display = "block";
-  });
-});
 </script>
 
 </body>
