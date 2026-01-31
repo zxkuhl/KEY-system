@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xenerator</title>
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/XInject%20Logi.png">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
 /* === Reset & Body === */
@@ -106,7 +107,6 @@ body::before {
   filter: drop-shadow(0 0 12px rgba(139, 0, 0, 0.7));
 }
 
-/* Mobile adjustments for Discord button */
 @media (max-width: 768px) {
   .discord-btn {
     width: 50px;
@@ -114,7 +114,6 @@ body::before {
     top: 15px;
     right: 15px;
   }
-  
   .discord-btn svg {
     width: 26px;
     height: 26px;
@@ -186,15 +185,17 @@ body::before {
 
 .card h1 {
   margin-bottom:15px;
-  font-size:32px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 48px;
   background: linear-gradient(135deg, #b30000, #8b0000, #660000, #8b0000);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 800;
-  letter-spacing: 4px;
+  letter-spacing: 8px;
   filter: drop-shadow(0 0 15px rgba(139, 0, 0, 0.5));
   position: relative;
+  text-transform: uppercase;
 }
 
 .card h1::after {
@@ -349,10 +350,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Reference to system (replace with your actual DB path)
 const systemRef = db.ref("system"); 
 
-// Generate key function
 function makeKey(){ return "FREE-" + Math.floor(Math.random()*1e10); }
 
 const genKeyBtn = document.getElementById("genKey");
@@ -360,7 +359,6 @@ const output = document.getElementById("output");
 const copiedMsg = document.getElementById("copiedMsg");
 
 genKeyBtn.onclick = ()=>{
-  // Cooldown disabled for testing
   systemRef.once("value", s=>{
     if(s.val() === false){
       output.innerText = "Key generation is disabled.";
@@ -372,7 +370,6 @@ genKeyBtn.onclick = ()=>{
     output.innerText = key;
     localStorage.setItem("lastGen", Date.now());
 
-    // Copy to clipboard
     navigator.clipboard.writeText(key).then(()=>{
       copiedMsg.style.opacity = 1;
       setTimeout(()=>{copiedMsg.style.opacity=0;},1500);
