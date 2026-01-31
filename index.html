@@ -120,7 +120,7 @@ const copiedMsg = document.getElementById("copiedMsg");
 
 genKeyBtn.onclick = ()=>{
   const lastGen = localStorage.getItem("lastGen");
-  if(lastGen && Date.now() - lastGen < 3600000){
+  if(lastGen && Date.now() - lastGen < 1){
     output.innerText = "You can only generate 1 key per hour.";
     return;
   }
