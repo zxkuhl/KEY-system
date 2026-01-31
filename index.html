@@ -2,53 +2,81 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title> Key generation System</title>
-
-<!-- Favicon -->
+<title>ZTECH Key System</title>
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/zxkuhl/KEY-system/main/IMG_0727.png?v=1">
 
 <style>
-body { 
-  margin:0; 
-  min-height:100vh; 
-  background:#080808; 
-  color:white; 
-  font-family:system-ui, monospace; 
-  display:flex; 
-  flex-direction:column; 
-  align-items:center; 
+/* === Reset & Body === */
+body {
+  margin:0;
+  padding:0;
+  min-height:100vh;
+  display:flex;
   justify-content:center;
+  align-items:center;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+  color:white;
 }
-.delta-box { 
-  background:black; 
-  border-radius:20px; 
-  padding:30px; 
-  text-align:center; 
-  box-shadow:0 0 0 1px rgba(255,255,255,0.05); 
+
+/* === Container Card === */
+.card {
+  background:#111;
+  padding:40px 30px;
+  border-radius:20px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.7);
+  text-align:center;
+  width: 360px;
 }
-.delta-text { 
-  font-weight:600; 
-  margin-bottom:20px; 
+
+.card h1 {
+  margin-bottom:20px;
+  font-size:28px;
+  color:#00ff9c;
 }
-.delta-btn { 
-  background:white; 
-  color:black; 
-  border:none; 
-  border-radius:16px; 
-  padding:14px 24px; 
-  font-weight:700; 
-  cursor:pointer; 
+
+.card p {
+  font-size:16px;
+  margin-bottom:20px;
+  color:#ccc;
 }
-.delta-btn:disabled { 
-  opacity:0.4; 
+
+/* === Button === */
+.delta-btn {
+  background:#00ff9c;
+  color:#000;
+  border:none;
+  border-radius:12px;
+  padding:14px 28px;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+  transition:0.3s;
 }
-pre { 
-  background:#0d0d0d; 
-  border-radius:12px; 
-  padding:12px; 
-  margin-top:16px; 
-  color:#00ff9c; 
-  overflow:auto; 
+.delta-btn:hover {
+  background:#00e68a;
+  transform: scale(1.05);
+}
+
+/* === Output Box === */
+#output {
+  margin-top:20px;
+  padding:12px;
+  background:#0d0d0d;
+  border-radius:12px;
+  color:#00ff9c;
+  font-family: monospace;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* === Copied message === */
+#copiedMsg {
+  margin-top:10px;
+  font-size:14px;
+  color:#00ff9c;
+  opacity:0;
+  transition:0.4s;
 }
 </style>
 
@@ -58,15 +86,16 @@ pre {
 </head>
 <body>
 
-<div class="delta-box">
+<div class="card">
   <h1>ZTECH KEYS</h1>
-  <p class="delta-text">Make a key to get whitelisted</p>
+  <p>Click the button to generate your whitelist key.</p>
   <button id="genKey" class="delta-btn">Generate Key</button>
   <pre id="output"></pre>
+  <div id="copiedMsg">Copied to clipboard!</div>
 </div>
 
 <script>
-// ================= FIREBASE =================
+// === Firebase config ===
 const firebaseConfig = {
   apiKey: "AIzaSyCDYErDzkUObLnPWJUwqOQcceqS2WyUWyM",
   authDomain: "key-system-5efa4.firebaseapp.com",
@@ -82,13 +111,12 @@ const db = firebase.database();
 // Reference to system (replace with your actual DB path)
 const systemRef = db.ref("system"); 
 
-// ================= KEY GENERATION =================
-function makeKey(){ 
-  return "FREE-" + Math.floor(Math.random()*1e10); 
-}
+// Generate key function
+function makeKey(){ return "FREE-" + Math.floor(Math.random()*1e10); }
 
 const genKeyBtn = document.getElementById("genKey");
 const output = document.getElementById("output");
+const copiedMsg = document.getElementById("copiedMsg");
 
 genKeyBtn.onclick = ()=>{
   const lastGen = localStorage.getItem("lastGen");
@@ -97,20 +125,21 @@ genKeyBtn.onclick = ()=>{
     return;
   }
   systemRef.once("value", s=>{
-    if(s.val() === false) {
+    if(s.val() === false){
       output.innerText = "Key generation is disabled.";
       return;
     }
     const key = makeKey();
-    const newKey = { 
-      key, 
-      active:true, 
-      expires:Date.now()+86400000, 
-      device: navigator.userAgent 
-    };
+    const newKey = { key, active:true, expires:Date.now()+86400000, device:navigator.userAgent };
     db.ref("keys").push(newKey);
     output.innerText = key;
     localStorage.setItem("lastGen", Date.now());
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(key).then(()=>{
+      copiedMsg.style.opacity = 1;
+      setTimeout(()=>{copiedMsg.style.opacity=0;},1500);
+    });
   });
 };
 </script>
