@@ -1,0 +1,1427 @@
+-- ============================================================
+
+--  XENERATOR  —  Wide Key-Entry GUI (FIREBASE FIXED)
+
+--  Works with Firebase real-time database
+
+--  Keys expire after 24 hours (dynamic system)
+
+-- ============================================================
+
+local HttpService      = game:GetService("HttpService")
+
+local Players          = game:GetService("Players")
+
+local TweenService     = game:GetService("TweenService")
+
+local UserInputService = game:GetService("UserInputService")
+
+local RunService       = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+-- Firebase real-time database URL
+
+local keysURL = "https://key-system-5efa4-default-rtdb.firebaseio.com/keys.json"
+
+-- ─────────────────────────────────────────────
+
+--  COLOURS
+
+-- ─────────────────────────────────────────────
+
+local C = {
+
+	BG            = Color3.fromRGB(10, 0, 10),	CARD          = Color3.fromRGB(20, 5, 20),
+
+	INPUT_BG      = Color3.fromRGB(15, 5, 15),
+
+	RED           = Color3.fromRGB(100, 0, 100),
+
+	RED_BRIGHT    = Color3.fromRGB(140, 20, 140),
+
+	RED_DIM       = Color3.fromRGB(50, 0, 50),
+
+	TEXT          = Color3.fromRGB(220, 220, 220),
+
+	TEXT_SUB      = Color3.fromRGB(120, 80, 120),
+
+	TEXT_KEY      = Color3.fromRGB(180, 100, 180),
+
+	TEXT_OK       = Color3.fromRGB(80, 210, 120),
+
+	TEXT_ERR      = Color3.fromRGB(180, 80, 180),
+
+	PLACEHOLDER   = Color3.fromRGB(70, 40, 70),
+
+	SCANLINE      = Color3.fromRGB(140, 30, 140),
+
+}
+
+-- ─────────────────────────────────────────────
+
+--  HELPERS
+
+-- ─────────────────────────────────────────────
+
+local function tw(obj, props, t, style, dir)
+
+	TweenService:Create(obj, TweenInfo.new(
+
+		t or 0.35, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out
+
+	), props):Play()
+
+end
+
+math.randomseed(os.clock() * 7777)
+
+-- ─────────────────────────────────────────────
+
+--  ROOT
+
+-- ─────────────────────────────────────────────
+
+local gui = Instance.new("ScreenGui")
+
+gui.Name           = "XeneratorGUI"
+
+gui.ResetOnSpawn   = false
+
+gui.DisplayOrder   = 100
+
+gui.Parent         = player:WaitForChild("PlayerGui")
+
+local bg = Instance.new("Frame")
+
+bg.Size                     = UDim2.new(1,0,1,0)
+
+bg.BackgroundColor3         = C.BG
+
+bg.BackgroundTransparency   = 1
+
+bg.BorderSizePixel          = 0
+
+bg.Parent                   = gui
+
+local ambGlow = Instance.new("ImageLabel")
+
+ambGlow.Size                = UDim2.new(0, 620, 0, 340)
+
+ambGlow.Position            = UDim2.new(0.5, -310, 0.5, -170)
+
+ambGlow.BackgroundTransparency = 1
+
+ambGlow.Image               = "rbxassetid://5074985345"
+
+ambGlow.ImageColor3         = C.RED
+
+ambGlow.ImageTransparency   = 0.62
+
+ambGlow.Parent              = bg
+
+-- ─────────────────────────────────────────────
+
+--  CARD
+
+-- ─────────────────────────────────────────────
+
+local card = Instance.new("Frame")
+
+card.Name                   = "Card"
+
+card.Size                   = UDim2.new(0, 600, 0, 270)
+
+card.Position               = UDim2.new(0.5, -300, 0.5, -135)
+
+card.BackgroundColor3       = C.CARD
+
+card.BorderSizePixel        = 0
+
+card.ClipsDescendants       = true
+
+card.BackgroundTransparency = 1
+
+card.Parent                 = bg
+
+Instance.new("UICorner", card).CornerRadius = UDim.new(0, 16)
+
+-- ─────────────────────────────────────────────
+
+--  HEX-GRID PATTERN
+
+-- ─────────────────────────────────────────────
+
+local HEX_SIZE = 22
+
+local cols = math.ceil(600 / HEX_SIZE) + 2
+
+local rows = math.ceil(270 / (HEX_SIZE * 0.75)) + 2
+
+for r = 0, rows do
+
+	for c = 0, cols do
+
+		local dot = Instance.new("Frame")
+
+		dot.Size                    = UDim2.new(0, 2, 0, 2)
+
+		dot.BackgroundColor3        = C.RED_DIM
+
+		dot.BorderSizePixel         = 0
+
+		dot.BackgroundTransparency  = 0.55
+
+		local ox = (r % 2 == 1) and (HEX_SIZE * 0.5) or 0
+
+		dot.Position                = UDim2.new(0, c * HEX_SIZE + ox - HEX_SIZE, 0, r * HEX_SIZE * 0.75 - HEX_SIZE * 0.75)
+
+		dot.Parent                  = card
+
+	end
+
+end
+
+-- ─────────────────────────────────────────────
+
+--  SCAN LINE
+
+-- ─────────────────────────────────────────────
+
+local scanLine = Instance.new("Frame")
+
+scanLine.Name               = "ScanLine"
+
+scanLine.Size               = UDim2.new(1, 0, 0, 2)
+
+scanLine.Position           = UDim2.new(0, 0, 0, 0)
+
+scanLine.BackgroundColor3   = C.SCANLINE
+
+scanLine.BorderSizePixel    = 0
+
+scanLine.Parent             = card
+
+local scanGlow = Instance.new("ImageLabel")
+
+scanGlow.Size               = UDim2.new(1, 0, 0, 28)
+
+scanGlow.Position           = UDim2.new(0, 0, 0, -13)
+
+scanGlow.BackgroundTransparency = 1
+
+scanGlow.Image              = "rbxassetid://5074985345"
+
+scanGlow.ImageColor3        = C.SCANLINE
+
+scanGlow.ImageTransparency  = 0.48
+
+scanGlow.Parent             = scanLine
+
+-- ─────────────────────────────────────────────
+
+--  DISCORD BUTTON
+
+-- ─────────────────────────────────────────────
+
+local discordBtn = Instance.new("TextButton")
+
+discordBtn.Name             = "DiscordButton"
+
+discordBtn.Size             = UDim2.new(0, 100, 0, 36)
+
+discordBtn.Position         = UDim2.new(0, 14, 0, 14)
+
+discordBtn.BackgroundTransparency = 1
+
+discordBtn.BorderSizePixel  = 0
+
+discordBtn.Text             = "DISCORD"
+
+discordBtn.TextColor3       = C.RED_BRIGHT
+
+discordBtn.Font             = Enum.Font.Code
+
+discordBtn.TextSize         = 16
+
+discordBtn.TextTransparency = 1
+
+discordBtn.Parent           = card
+
+discordBtn.MouseEnter:Connect(function()
+
+	tw(discordBtn, { TextColor3 = Color3.fromRGB(180, 50, 180), TextSize = 18 }, 0.2)
+
+end)
+
+discordBtn.MouseLeave:Connect(function()
+
+	tw(discordBtn, { TextColor3 = C.RED_BRIGHT, TextSize = 16 }, 0.2)
+
+end)
+
+discordBtn.MouseButton1Click:Connect(function()
+
+	setclipboard("https://discord.gg/KPUPp4m9pJ")
+
+	tw(discordBtn, { TextColor3 = C.TEXT_OK }, 0.15)
+
+	task.wait(0.15)
+
+	tw(discordBtn, { TextColor3 = C.RED_BRIGHT }, 0.15)
+
+	
+
+	game.StarterGui:SetCore("SendNotification", {
+
+		Title = "LINK_COPIED";
+
+		Text = "discord.gg/KPUPp4m9pJ → clipboard";
+
+		Duration = 3;
+
+	})
+
+end)
+
+-- ─────────────────────────────────────────────
+
+--  GET KEY BUTTON
+
+-- ─────────────────────────────────────────────
+
+local getKeyBtn = Instance.new("TextButton")
+
+getKeyBtn.Name             = "GetKeyButton"
+
+getKeyBtn.Size             = UDim2.new(0, 100, 0, 36)
+
+getKeyBtn.Position         = UDim2.new(0, 14, 0, 58)
+
+getKeyBtn.BackgroundTransparency = 1
+
+getKeyBtn.BorderSizePixel  = 0
+
+getKeyBtn.Text             = "GET KEY"
+
+getKeyBtn.TextColor3       = C.RED_BRIGHT
+
+getKeyBtn.Font             = Enum.Font.Code
+
+getKeyBtn.TextSize         = 16
+
+getKeyBtn.TextTransparency = 1
+
+getKeyBtn.Parent           = card
+
+getKeyBtn.MouseEnter:Connect(function()
+
+	tw(getKeyBtn, { TextColor3 = Color3.fromRGB(180, 50, 180), TextSize = 18 }, 0.2)
+
+end)
+
+getKeyBtn.MouseLeave:Connect(function()
+
+	tw(getKeyBtn, { TextColor3 = C.RED_BRIGHT, TextSize = 16 }, 0.2)
+
+end)
+
+getKeyBtn.MouseButton1Click:Connect(function()
+
+	setclipboard("https://zxkuhl.github.io/KEY-system/")
+
+	tw(getKeyBtn, { TextColor3 = C.TEXT_OK }, 0.15)
+
+	task.wait(0.15)
+
+	tw(getKeyBtn, { TextColor3 = C.RED_BRIGHT }, 0.15)
+
+	
+
+	game.StarterGui:SetCore("SendNotification", {
+
+		Title = "LINK_COPIED";
+
+		Text = "zxkuhl.github.io/KEY-system → clipboard";
+
+		Duration = 3;
+
+	})
+
+end)
+
+-- ─────────────────────────────────────────────
+
+--  CLOSE BUTTON
+
+-- ─────────────────────────────────────────────
+
+local closeBtn = Instance.new("TextButton")
+
+closeBtn.Name               = "CloseButton"
+
+closeBtn.Size               = UDim2.new(0, 36, 0, 36)
+
+closeBtn.Position           = UDim2.new(1, -50, 0, 14)
+
+closeBtn.BackgroundColor3   = C.RED_DIM
+
+closeBtn.BorderSizePixel    = 1
+
+closeBtn.BorderColor3       = C.RED
+
+closeBtn.Text               = ""
+
+closeBtn.BackgroundTransparency = 0.75
+
+closeBtn.Parent             = card
+
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+local closeIcon = Instance.new("TextLabel")
+
+closeIcon.Size            = UDim2.new(1, 0, 1, 0)
+
+closeIcon.Position        = UDim2.new(0, 0, 0, 0)
+
+closeIcon.BackgroundTransparency = 1
+
+closeIcon.Text            = "╳"
+
+closeIcon.TextColor3      = C.RED_BRIGHT
+
+closeIcon.Font            = Enum.Font.Code
+
+closeIcon.TextSize        = 20
+
+closeIcon.TextTransparency = 0.15
+
+closeIcon.Parent          = closeBtn
+
+local cBracketTR = Instance.new("TextLabel")
+
+cBracketTR.Size = UDim2.new(0, 8, 0, 8)
+
+cBracketTR.Position = UDim2.new(1, -4, 0, -4)
+
+cBracketTR.BackgroundTransparency = 1
+
+cBracketTR.Text = "┐"
+
+cBracketTR.TextColor3 = C.RED_BRIGHT
+
+cBracketTR.Font = Enum.Font.Code
+
+cBracketTR.TextSize = 14
+
+cBracketTR.TextTransparency = 0.3
+
+cBracketTR.Parent = closeBtn
+
+local cBracketBL = Instance.new("TextLabel")
+
+cBracketBL.Size = UDim2.new(0, 8, 0, 8)
+
+cBracketBL.Position = UDim2.new(0, -4, 1, -4)
+
+cBracketBL.BackgroundTransparency = 1
+
+cBracketBL.Text = "└"
+
+cBracketBL.TextColor3 = C.RED_BRIGHT
+
+cBracketBL.Font = Enum.Font.Code
+
+cBracketBL.TextSize = 14
+
+cBracketBL.TextTransparency = 0.3
+
+cBracketBL.Parent = closeBtn
+
+local closeGlow = Instance.new("ImageLabel")
+
+closeGlow.Size              = UDim2.new(1, 24, 1, 24)
+
+closeGlow.Position          = UDim2.new(0, -12, 0, -12)
+
+closeGlow.BackgroundTransparency = 1
+
+closeGlow.Image             = "rbxassetid://5074985345"
+
+closeGlow.ImageColor3       = C.RED
+
+closeGlow.ImageTransparency = 0.92
+
+closeGlow.ZIndex            = -1
+
+closeGlow.Parent            = closeBtn
+
+closeBtn.MouseEnter:Connect(function()
+
+	tw(closeBtn, { BackgroundTransparency = 0.55, BorderColor3 = C.RED_BRIGHT }, 0.2)
+
+	tw(closeGlow, { ImageTransparency = 0.7 }, 0.2)
+
+	tw(closeIcon, { TextTransparency = 0, Rotation = 90 }, 0.25)
+
+	tw(cBracketTR, { TextTransparency = 0 }, 0.2)
+
+	tw(cBracketBL, { TextTransparency = 0 }, 0.2)
+
+end)
+
+closeBtn.MouseLeave:Connect(function()
+
+	tw(closeBtn, { BackgroundTransparency = 0.75, BorderColor3 = C.RED }, 0.2)
+
+	tw(closeGlow, { ImageTransparency = 0.92 }, 0.2)
+
+	tw(closeIcon, { TextTransparency = 0.15, Rotation = 0 }, 0.25)
+
+	tw(cBracketTR, { TextTransparency = 0.3 }, 0.2)
+
+	tw(cBracketBL, { TextTransparency = 0.3 }, 0.2)
+
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+
+	local glitchFrames = {"╳", "✕", "×", "╳"}
+
+	for i = 1, 6 do
+
+		closeIcon.Text = glitchFrames[math.random(1, #glitchFrames)]
+
+		closeIcon.Position = UDim2.new(0, math.random(-2, 2), 0, math.random(-2, 2))
+
+		task.wait(0.05)
+
+	end
+
+	
+
+	tw(closeBtn, { Rotation = 360 }, 0.4)
+
+	tw(card, { 
+
+		Size = UDim2.new(0, 0, 0, 0),
+
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+
+		BackgroundTransparency = 1 
+
+	}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+
+	tw(bg, { BackgroundTransparency = 1 }, 0.55)
+
+	task.wait(0.6)
+
+	gui:Destroy()
+
+end)
+
+-- ─────────────────────────────────────────────
+
+--  CORNER BRACKETS
+
+-- ─────────────────────────────────────────────
+
+local bracketInstances = {}
+
+local function makeBracket(parent, cx, cy, fx, fy)
+
+	local root = Instance.new("Frame")
+
+	root.Size                   = UDim2.new(0, 0, 0, 0)
+
+	root.BackgroundTransparency = 1
+
+	root.BorderSizePixel        = 0
+
+	local h = Instance.new("Frame")
+
+	h.Size              = UDim2.new(1, 0, 0, 2)
+
+	h.Position          = fy and UDim2.new(0,0,1,-2) or UDim2.new(0,0,0,0)
+
+	h.BackgroundColor3  = C.RED_BRIGHT
+
+	h.BorderSizePixel   = 0
+
+	h.Parent            = root
+
+	local v = Instance.new("Frame")
+
+	v.Size              = UDim2.new(0, 2, 1, 0)
+
+	v.Position          = fx and UDim2.new(1,-2,0,0) or UDim2.new(0,0,0,0)
+
+	v.BackgroundColor3  = C.RED_BRIGHT
+
+	v.BorderSizePixel   = 0
+
+	v.Parent            = root
+
+	local dot = Instance.new("Frame")
+
+	dot.Size            = UDim2.new(0, 4, 0, 4)
+
+	dot.Position        = UDim2.new(fx and 1 or 0, fx and -4 or 0, fy and 1 or 0, fy and -4 or 0)
+
+	dot.BackgroundColor3 = C.RED_BRIGHT
+
+	dot.BorderSizePixel = 0
+
+	dot.Parent          = root
+
+	Instance.new("UICorner", dot).CornerRadius = UDim.new(0.5, 0)
+
+	local m = 14
+
+	root.Position = UDim2.new(cx, cx == 0 and m or (-28-m), cy, cy == 0 and m or (-28-m))
+
+	root.Parent   = parent
+
+	table.insert(bracketInstances, root)
+
+	return root
+
+end
+
+makeBracket(card, 0, 0, false, false)
+
+makeBracket(card, 1, 0, true,  false)
+
+makeBracket(card, 0, 1, false, true)
+
+makeBracket(card, 1, 1, true,  true)
+
+-- ─────────────────────────────────────────────
+
+--  LEFT SIDE
+
+-- ─────────────────────────────────────────────
+
+local logoFrame = Instance.new("Frame")
+
+logoFrame.Size                  = UDim2.new(0, 72, 0, 72)
+
+logoFrame.Position              = UDim2.new(0, 40, 0.5, -36)
+
+logoFrame.BackgroundTransparency = 1
+
+logoFrame.Parent                = card
+
+local logoGlow = Instance.new("ImageLabel")
+
+logoGlow.Size               = UDim2.new(1, 44, 1, 44)
+
+logoGlow.Position           = UDim2.new(0, -22, 0, -22)
+
+logoGlow.BackgroundTransparency = 1
+
+logoGlow.Image              = "rbxassetid://5074985345"
+
+logoGlow.ImageColor3        = C.RED
+
+logoGlow.ImageTransparency  = 1
+
+logoGlow.ZIndex             = -1
+
+logoGlow.Parent             = logoFrame
+
+local logo = Instance.new("ImageLabel")
+
+logo.Size                   = UDim2.new(1, 0, 1, 0)
+
+logo.BackgroundTransparency = 1
+
+logo.Image                  = "https://raw.githubusercontent.com/zxkuhl/KEY-system/refs/heads/main/XInject%20Logi.png"
+
+logo.ImageTransparency      = 1
+
+logo.Parent                 = logoFrame
+
+local titleBase = Instance.new("TextLabel")
+
+titleBase.Size              = UDim2.new(0, 210, 0, 36)
+
+titleBase.Position          = UDim2.new(0, 126, 0, 88)
+
+titleBase.BackgroundTransparency = 1
+
+titleBase.Text              = "XENERATOR"
+
+titleBase.TextColor3        = C.RED_BRIGHT
+
+titleBase.Font              = Enum.Font.Code
+
+titleBase.TextSize          = 28
+
+titleBase.TextXAlignment    = Enum.TextXAlignment.Left
+
+titleBase.TextTransparency  = 1
+
+titleBase.Parent            = card
+
+local titleGlitch = titleBase:Clone()
+
+titleGlitch.Name            = "TitleGlitch"
+
+titleGlitch.TextColor3      = Color3.fromRGB(160, 30, 160)
+
+titleGlitch.TextTransparency = 0.55
+
+titleGlitch.Parent          = card
+
+local subtitle = Instance.new("TextLabel")
+
+subtitle.Size               = UDim2.new(0, 190, 0, 24)
+
+subtitle.Position           = UDim2.new(0, 126, 0, 128)
+
+subtitle.BackgroundTransparency = 1
+
+subtitle.Text               = "Whitelist key required"
+
+subtitle.TextColor3         = C.TEXT_SUB
+
+subtitle.Font               = Enum.Font.Code
+
+subtitle.TextSize           = 12
+
+subtitle.TextXAlignment     = Enum.TextXAlignment.Left
+
+subtitle.TextTransparency  = 1
+
+subtitle.Parent             = card
+
+-- ─────────────────────────────────────────────
+
+--  VERTICAL DIVIDER
+
+-- ─────────────────────────────────────────────
+
+local vDiv = Instance.new("Frame")
+
+vDiv.Size               = UDim2.new(0, 1, 1, -80)
+
+vDiv.Position           = UDim2.new(0, 300, 0, 40)
+
+vDiv.BackgroundColor3   = C.RED_DIM
+
+vDiv.BorderSizePixel    = 0
+
+vDiv.Parent             = card
+
+-- ─────────────────────────────────────────────
+
+--  RIGHT SIDE
+
+-- ─────────────────────────────────────────────
+
+local inputFrame = Instance.new("Frame")
+
+inputFrame.Size             = UDim2.new(0, 240, 0, 40)
+
+inputFrame.Position         = UDim2.new(0, 330, 0, 90)
+
+inputFrame.BackgroundTransparency = 1
+
+inputFrame.BorderSizePixel  = 1
+
+inputFrame.BorderColor3     = C.RED_DIM
+
+inputFrame.Parent           = card
+
+Instance.new("UICorner", inputFrame).CornerRadius = UDim.new(0, 8)
+
+local inputGlow = Instance.new("ImageLabel")
+
+inputGlow.Size              = UDim2.new(1, 26, 1, 26)
+
+inputGlow.Position          = UDim2.new(0, -13, 0, -13)
+
+inputGlow.BackgroundTransparency = 1
+
+inputGlow.Image             = "rbxassetid://5074985345"
+
+inputGlow.ImageColor3       = C.RED
+
+inputGlow.ImageTransparency = 0.88
+
+inputGlow.ZIndex            = -1
+
+inputGlow.Parent            = inputFrame
+
+local textBox = Instance.new("TextBox")
+
+textBox.Size                = UDim2.new(1, -22, 1, 0)
+
+textBox.Position            = UDim2.new(0, 11, 0, 0)
+
+textBox.BackgroundTransparency = 1
+
+textBox.PlaceholderText     = "PASTE KEY HERE"
+
+textBox.PlaceholderColor3   = C.PLACEHOLDER
+
+textBox.ClearTextOnFocus    = true
+
+textBox.Text                = ""
+
+textBox.TextColor3          = C.TEXT_KEY
+
+textBox.Font                = Enum.Font.Code
+
+textBox.TextSize            = 13
+
+textBox.TextXAlignment      = Enum.TextXAlignment.Left
+
+textBox.TextTransparency    = 0
+
+textBox.Parent              = inputFrame
+
+textBox.Focused:Connect(function()
+
+	tw(inputFrame, { BorderColor3 = C.RED }, 0.25)
+
+	tw(inputGlow,  { ImageTransparency = 0.6 }, 0.25)
+
+end)
+
+textBox.FocusLost:Connect(function()
+
+	tw(inputFrame, { BorderColor3 = C.RED_DIM }, 0.25)
+
+	tw(inputGlow,  { ImageTransparency = 0.88 }, 0.25)
+
+end)
+
+local submitBtn = Instance.new("TextButton")
+
+submitBtn.Size              = UDim2.new(0, 240, 0, 38)
+
+submitBtn.Position          = UDim2.new(0, 330, 0, 140)
+
+submitBtn.BackgroundColor3  = C.RED
+
+submitBtn.BorderSizePixel   = 0
+
+submitBtn.Text              = "VALIDATE KEY"
+
+submitBtn.TextColor3        = C.TEXT
+
+submitBtn.Font              = Enum.Font.Code
+
+submitBtn.TextSize          = 14
+
+submitBtn.BackgroundTransparency = 0.2
+
+submitBtn.TextTransparency  = 0
+
+submitBtn.Parent            = card
+
+Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0, 8)
+
+local btnGlow = Instance.new("ImageLabel")
+
+btnGlow.Size                = UDim2.new(1, 32, 1, 32)
+
+btnGlow.Position            = UDim2.new(0, -16, 0, -16)
+
+btnGlow.BackgroundTransparency = 1
+
+btnGlow.Image               = "rbxassetid://5074985345"
+
+btnGlow.ImageColor3         = C.RED
+
+btnGlow.ImageTransparency   = 0.6
+
+btnGlow.ZIndex              = -1
+
+btnGlow.Parent              = submitBtn
+
+local shine = Instance.new("Frame")
+
+shine.Size                  = UDim2.new(0.32, 0, 1, 0)
+
+shine.Position              = UDim2.new(-0.38, 0, 0, 0)
+
+shine.BackgroundColor3      = Color3.new(1,1,1)
+
+shine.BackgroundTransparency = 0.74
+
+shine.BorderSizePixel       = 0
+
+shine.Parent                = submitBtn
+
+Instance.new("UICorner", shine).CornerRadius = UDim.new(0, 8)
+
+submitBtn.MouseEnter:Connect(function()
+
+	tw(submitBtn, { BackgroundColor3 = C.RED_BRIGHT, BackgroundTransparency = 0.1 }, 0.2)
+
+end)
+
+submitBtn.MouseLeave:Connect(function()
+
+	tw(submitBtn, { BackgroundColor3 = C.RED, BackgroundTransparency = 0.2 }, 0.2)
+
+end)
+
+local shineRunning = false
+
+local function sweepShine()
+
+	if shineRunning then return end
+
+	shineRunning = true
+
+	shine.Position = UDim2.new(-0.38, 0, 0, 0)
+
+	task.wait(0.03)
+
+	tw(shine, { Position = UDim2.new(1.1, 0, 0, 0) }, 0.5, Enum.EasingStyle.Linear)
+
+	task.wait(0.55)
+
+	shineRunning = false
+
+end
+
+submitBtn.MouseEnter:Connect(sweepShine)
+
+local function spawnRipple()
+
+	local r = Instance.new("Frame")
+
+	r.Size                  = UDim2.new(0, 0, 0, 0)
+
+	r.Position              = UDim2.new(0.5, 0, 0.5, 0)
+
+	r.BackgroundTransparency = 0.5
+
+	r.BackgroundColor3      = C.RED_BRIGHT
+
+	r.BorderSizePixel       = 0
+
+	r.Parent                = submitBtn
+
+	Instance.new("UICorner", r).CornerRadius = UDim.new(0.5, 0)
+
+	tw(r, {
+
+		Size     = UDim2.new(0, 300, 0, 300),
+
+		Position = UDim2.new(0.5, -150, 0.5, -150),
+
+		BackgroundTransparency = 1
+
+	}, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+	task.delay(0.5, function() if r then r:Destroy() end end)
+
+end
+
+local statusLabel = Instance.new("TextLabel")
+
+statusLabel.Size            = UDim2.new(0, 240, 0, 22)
+
+statusLabel.Position        = UDim2.new(0, 330, 0, 190)
+
+statusLabel.BackgroundTransparency = 1
+
+statusLabel.Text            = ""
+
+statusLabel.TextColor3      = C.TEXT_ERR
+
+statusLabel.Font            = Enum.Font.Code
+
+statusLabel.TextSize        = 12
+
+statusLabel.TextXAlignment  = Enum.TextXAlignment.Left
+
+statusLabel.TextTransparency = 1
+
+statusLabel.Parent          = card
+
+-- ─────────────────────────────────────────────
+
+--  PARTICLES
+
+-- ─────────────────────────────────────────────
+
+local particles = {}
+
+for i = 1, 26 do
+
+	local p = Instance.new("Frame")
+
+	p.Size                  = UDim2.new(0, math.random(1,4), 0, math.random(1,4))
+
+	p.BackgroundColor3      = C.RED
+
+	p.BorderSizePixel       = 0
+
+	p.BackgroundTransparency = 0.5
+
+	p.Parent                = card
+
+	Instance.new("UICorner", p).CornerRadius = UDim.new(0.5, 0)
+
+	local depth = math.random()
+
+	table.insert(particles, {
+
+		frame = p,
+
+		x     = math.random(),
+
+		y     = math.random(),
+
+		vx    = (math.random()-0.5) * (0.012 + depth*0.032),
+
+		vy    = (math.random()-0.5) * (0.012 + depth*0.032),
+
+		depth = depth,
+
+		phase = math.random() * math.pi * 2,
+
+		size  = 1 + depth * 2.8,
+
+	})
+
+end
+
+-- ─────────────────────────────────────────────
+
+--  ENTRANCE ANIMATIONS
+
+-- ─────────────────────────────────────────────
+
+task.spawn(function()
+
+	task.wait(0.2)
+
+	tw(card, { BackgroundTransparency = 0 }, 0.45)
+
+	for i, b in ipairs(bracketInstances) do
+
+		task.delay(0.12 * i, function()
+
+			tw(b, { Size = UDim2.new(0, 28, 0, 28) }, 0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+		end)
+
+	end
+
+	task.wait(0.15)
+
+	tw(discordBtn, { TextTransparency = 0 }, 0.3)
+
+	tw(getKeyBtn, { TextTransparency = 0 }, 0.3)
+
+	
+
+	task.wait(0.05)
+
+	closeBtn.Position = UDim2.new(1, -50 + math.random(-5, 5), 0, 14 + math.random(-5, 5))
+
+	tw(closeBtn, { 
+
+		BackgroundTransparency = 0.75,
+
+		Position = UDim2.new(1, -50, 0, 14)
+
+	}, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+	tw(closeIcon, { TextTransparency = 0.15 }, 0.3)
+
+	task.wait(0.12)
+
+	logoFrame.Size     = UDim2.new(0, 56, 0, 56)
+
+	logoFrame.Position = UDim2.new(0, 40 + 8, 0.5, -28)
+
+	tw(logo,     { ImageTransparency = 0 }, 0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+	tw(logoGlow, { ImageTransparency = 0.55 }, 0.38)
+
+	task.wait(0.06)
+
+	tw(logoFrame, {
+
+		Size     = UDim2.new(0, 72, 0, 72),
+
+		Position = UDim2.new(0, 40, 0.5, -36)
+
+	}, 0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+	task.wait(0.18)
+
+	tw(titleBase, { TextTransparency = 0 }, 0.32)
+
+	task.wait(0.16)
+
+	tw(inputFrame, { BorderColor3 = C.RED_DIM }, 0.3)
+
+	task.wait(0.1)
+
+	tw(subtitle, { TextTransparency = 0 }, 0.28)
+
+	task.wait(0.16)
+
+	tw(submitBtn, { BackgroundTransparency = 0.2 }, 0.32, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+end)
+
+-- ─────────────────────────────────────────────
+
+--  ANIMATION LOOP
+
+-- ─────────────────────────────────────────────
+
+local t0 = os.clock()
+
+local glitchTimer    = 0
+
+local glitchCooldown = 2.8
+
+local glitchActive   = false
+
+local glitchEnd      = 0
+
+RunService.RenderStepped:Connect(function()
+
+	local t  = os.clock() - t0
+
+	local dt = 1/60
+
+	local scanFrac = (t % 3.4) / 3.4
+
+	scanLine.Position = UDim2.new(0, 0, scanFrac, 0)
+
+	for _, p in ipairs(particles) do
+
+		p.x = p.x + p.vx * dt
+
+		p.y = p.y + p.vy * dt
+
+		if p.x >  1.07 then p.x = -0.07 end
+
+		if p.x < -0.07 then p.x =  1.07 end
+
+		if p.y >  1.07 then p.y = -0.07 end
+
+		if p.y < -0.07 then p.y =  1.07 end
+
+		p.frame.Position = UDim2.new(p.x, 0, p.y, 0)
+
+		local pulse = math.sin(t * 1.9 + p.phase) * 0.2 + 0.55
+
+		p.frame.BackgroundTransparency = 1 - (pulse * (0.28 + p.depth * 0.42))
+
+		local breathe = math.sin(t * 2.3 + p.phase) * 0.14 + 1.0
+
+		local s = p.size * breathe
+
+		p.frame.Size = UDim2.new(0, s, 0, s)
+
+	end
+
+	local lp = math.sin(t * 1.85) * 0.022 + 1.0
+
+	local ls = 72 * lp
+
+	logoFrame.Size     = UDim2.new(0, ls, 0, ls)
+
+	logoFrame.Position = UDim2.new(0, 40 + (72 - ls)/2, 0.5, -(ls/2))
+
+	logoGlow.ImageTransparency = 0.5 + math.sin(t * 1.85) * 0.15
+
+	if math.random() > 0.97 then
+
+		closeBtn.BorderColor3 = C.RED_BRIGHT
+
+	else
+
+		if closeBtn.BackgroundTransparency > 0.6 then
+
+			closeBtn.BorderColor3 = C.RED
+
+		end
+
+	end
+
+	glitchTimer = glitchTimer + dt
+
+	if not glitchActive and glitchTimer >= glitchCooldown then
+
+		glitchActive = true
+
+		glitchEnd    = t + 0.2
+
+		glitchTimer  = 0
+
+	end
+
+	if glitchActive then
+
+		if t < glitchEnd then
+
+			local ox = math.random(-4, 4)
+
+			local oy = math.random(-2, 2)
+
+			titleGlitch.Position          = UDim2.new(0, 126 + ox, 0, 88 + oy)
+
+			titleGlitch.TextTransparency  = math.random() * 0.35 + 0.12
+
+			titleBase.TextColor3 = math.random() > 0.45
+
+				and Color3.fromRGB(190, 60, 190)
+
+				or  C.RED_BRIGHT
+
+		else
+
+			titleGlitch.Position          = titleBase.Position
+
+			titleGlitch.TextTransparency  = 0.55
+
+			titleBase.TextColor3          = C.RED_BRIGHT
+
+			glitchActive                  = false
+
+		end
+
+	end
+
+end)
+
+-- ─────────────────────────────────────────────
+
+--  STATUS HELPER
+
+-- ─────────────────────────────────────────────
+
+local function setStatus(msg, color, autoHide)
+
+	statusLabel.Text            = msg
+
+	statusLabel.TextColor3      = color
+
+	statusLabel.TextTransparency = 0
+
+	if autoHide then
+
+		task.delay(autoHide, function()
+
+			tw(statusLabel, { TextTransparency = 1 }, 0.35)
+
+		end)
+
+	end
+
+end
+
+-- ─────────────────────────────────────────────
+
+--  FIREBASE KEY VALIDATION (USING GAME:HTTPGET)
+
+-- ─────────────────────────────────────────────
+
+local isSubmitting = false
+
+submitBtn.MouseButton1Click:Connect(function()
+
+	if isSubmitting then return end
+
+	isSubmitting = true
+
+	spawnRipple()
+
+	local userKey = textBox.Text
+
+	if userKey == "" then
+
+		setStatus("— Enter a key first", C.TEXT_ERR, 3)
+
+		isSubmitting = false
+
+		return
+
+	end
+
+	setStatus("Validating key…", C.TEXT_SUB)
+
+	submitBtn.Text = "VALIDATING…"
+
+	print("[XENERATOR] Attempting to contact server...")
+
+	local success, result = pcall(function()
+
+		return game:HttpGet(keysURL)
+
+	end)
+
+	if success and result then
+
+		print("[XENERATOR] ✓ Successfully connected to server")
+
+		print("[XENERATOR] Response length:", #result, "characters")
+
+		
+
+		local decodeOk, keysData = pcall(function()
+
+			return HttpService:JSONDecode(result)
+
+		end)
+
+		
+
+		if decodeOk and keysData then
+
+			print("[XENERATOR] ✓ Successfully decoded JSON")
+
+			print("[XENERATOR] Checking", userKey, "against database...")
+
+			
+
+			local valid = false
+
+			local keyCount = 0
+
+			
+
+			for keyId, entry in pairs(keysData) do
+
+				keyCount = keyCount + 1
+
+				if entry.key == userKey then
+
+					print("[XENERATOR] ✓ KEY MATCH FOUND!")
+
+					valid = true
+
+					break
+
+				end
+
+			end
+
+			
+
+			print("[XENERATOR] Checked against", keyCount, "keys in database")
+
+			if valid then
+
+				setStatus("✓  Access granted", C.TEXT_OK)
+
+				submitBtn.Text             = "GRANTED"
+
+				submitBtn.BackgroundColor3 = Color3.fromRGB(25, 90, 50)
+
+				task.wait(1.1)
+
+				tw(card, { 
+
+					Size = UDim2.new(0, 0, 0, 0),
+
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+
+					BackgroundTransparency = 1 
+
+				}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+
+				tw(bg, { BackgroundTransparency = 1 }, 0.55)
+
+				task.wait(0.6)
+
+				gui:Destroy()
+
+				print("[XENERATOR] ✓ Key validated! Loading main script...")
+
+				-- PUT YOUR MAIN SCRIPT URL HERE:
+
+				-- loadstring(game:HttpGet("YOUR_SCRIPT_URL_HERE"))()
+
+			else
+
+				print("[XENERATOR] ✗ Key not found in database")
+
+				setStatus("✕  Invalid or expired key", C.TEXT_ERR, 4)
+
+				submitBtn.Text             = "VALIDATE KEY"
+
+				submitBtn.BackgroundColor3 = C.RED
+
+			end
+
+		else
+
+			print("[XENERATOR] ✗ Failed to parse JSON response")
+
+			setStatus("✕  Parse error", C.TEXT_ERR, 4)
+
+			submitBtn.Text             = "VALIDATE KEY"
+
+			submitBtn.BackgroundColor3 = C.RED
+
+		end
+
+	else
+
+		print("[XENERATOR] ✗ HTTP request failed")
+
+		print("[XENERATOR] Error:", tostring(result))
+
+		setStatus("✕  Server unreachable", C.TEXT_ERR, 4)
+
+		submitBtn.Text             = "VALIDATE KEY"
+
+		submitBtn.BackgroundColor3 = C.RED
+
+		
+
+		-- Additional debugging
+
+		warn("═══════════════════════════════════")
+
+		warn("[XENERATOR] CONNECTION FAILED")
+
+		warn("Your executor may not support game:HttpGet()")
+
+		warn("OR Firebase is blocking the request")
+
+		warn("Try a different executor or contact support")
+
+		warn("═══════════════════════════════════")
+
+	end
+
+	isSubmitting = false
+
+end)
+
+-- ─────────────────────────────────────────────
+
+--  ENTER KEY TO SUBMIT
+
+-- ─────────────────────────────────────────────
+
+UserInputService.InputBegan:Connect(function(input)
+
+	if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KPEnter then
+
+		if not isSubmitting then
+
+			submitBtn.MouseButton1Click:Fire()
+
+		end
+
+	end
+
+end)
